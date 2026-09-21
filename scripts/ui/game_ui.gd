@@ -94,27 +94,29 @@ func _get_player_cards_text() -> String:
 	if game.player.hand.cards.is_empty():
 		return "No cards"
 
-	var card_names: Array[String] = []
+	var card_names: PackedStringArray = []
 
 	for card in game.player.hand.cards:
 		card_names.append(card.get_card_name())
 
-	return "\n".join(card_names)
+	return "  |  ".join(card_names)
 
 
 func _get_dealer_cards_text() -> String:
 	if game.dealer.hand.cards.is_empty():
 		return "No cards"
 
-	var card_names: Array[String] = []
+	var card_names: PackedStringArray = []
 
-	for index in range(game.dealer.hand.cards.size()):
-		if index == 1 and not game.round_over:
+	for i in range(game.dealer.hand.cards.size()):
+		var card := game.dealer.hand.cards[i]
+
+		if i == 1 and not game.round_over:
 			card_names.append("[Hidden Card]")
 		else:
-			card_names.append(game.dealer.hand.cards[index].get_card_name())
+			card_names.append(card.get_card_name())
 
-	return "\n".join(card_names)
+	return "  |  ".join(card_names)
 
 
 func _get_dealer_total_text() -> String:
