@@ -1,11 +1,41 @@
-extends Node
+class_name Deck
+extends Resource
 
 
-# Called when the node enters the scene tree for the first time.
-func _ready() -> void:
-	pass # Replace with function body.
+var cards: Array[Card] = []
 
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
-	pass
+func _init():
+	reset()
+
+
+func create_deck() -> void:
+	cards.clear()
+
+	for suit in Card.Suit.values():
+		for rank in Card.Rank.values():
+			cards.append(Card.new(suit, rank))
+
+
+func shuffle() -> void:
+	cards.shuffle()
+
+
+func deal_card() -> Card:
+	if cards.is_empty():
+		return null
+
+	return cards.pop_back()
+
+
+func reset() -> void:
+	create_deck()
+	shuffle()
+
+
+func cards_remaining() -> int:
+	return cards.size()
+
+
+func is_empty() -> bool:
+	return cards.is_empty()

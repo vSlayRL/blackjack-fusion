@@ -1,3 +1,176 @@
-[gd_scene format=3 uid="uid://bcqfpnlbulwxg"]
+[gd_scene load_steps=2 format=3 uid="uid://bcqfpnlbulwxg"]
 
-[node name="Game" type="Node2D" unique_id=1135377012]
+[ext_resource type="Script" path="res://scripts/ui/game_ui.gd" id="1_game_ui"]
+
+[node name="Game" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_game_ui")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.035, 0.18, 0.11, 1)
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="GamePanel" type="PanelContainer" parent="CenterContainer"]
+custom_minimum_size = Vector2(720, 560)
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="CenterContainer/GamePanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 24
+
+[node name="MainLayout" type="VBoxContainer" parent="CenterContainer/GamePanel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="TitleLabel" type="Label" parent="CenterContainer/GamePanel/MarginContainer/MainLayout"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "BLACKJACK FUSION"
+horizontal_alignment = 1
+
+[node name="SubtitleLabel" type="Label" parent="CenterContainer/GamePanel/MarginContainer/MainLayout"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.72, 0.72, 0.72, 1)
+text = "Logic Iteration - Basic Blackjack"
+horizontal_alignment = 1
+
+[node name="HeaderRow" type="HBoxContainer" parent="CenterContainer/GamePanel/MarginContainer/MainLayout"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 28
+
+[node name="MoneyLabel" type="Label" parent="CenterContainer/GamePanel/MarginContainer/MainLayout/HeaderRow"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Money: $100.00"
+
+[node name="CurrentBetLabel" type="Label" parent="CenterContainer/GamePanel/MarginContainer/MainLayout/HeaderRow"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Current Bet: $0.00"
+
+[node name="Divider1" type="HSeparator" parent="CenterContainer/GamePanel/MarginContainer/MainLayout"]
+layout_mode = 2
+
+[node name="DealerSection" type="VBoxContainer" parent="CenterContainer/GamePanel/MarginContainer/MainLayout"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="DealerTitleLabel" type="Label" parent="CenterContainer/GamePanel/MarginContainer/MainLayout/DealerSection"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "DEALER"
+horizontal_alignment = 1
+
+[node name="DealerCardsLabel" type="Label" parent="CenterContainer/GamePanel/MarginContainer/MainLayout/DealerSection"]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+text = "No cards"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="DealerTotalLabel" type="Label" parent="CenterContainer/GamePanel/MarginContainer/MainLayout/DealerSection"]
+layout_mode = 2
+text = "Total: ?"
+horizontal_alignment = 1
+
+[node name="StatusLabel" type="Label" parent="CenterContainer/GamePanel/MarginContainer/MainLayout"]
+custom_minimum_size = Vector2(0, 46)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Place a bet to begin."
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2
+
+[node name="PlayerSection" type="VBoxContainer" parent="CenterContainer/GamePanel/MarginContainer/MainLayout"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="PlayerTitleLabel" type="Label" parent="CenterContainer/GamePanel/MarginContainer/MainLayout/PlayerSection"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "PLAYER"
+horizontal_alignment = 1
+
+[node name="PlayerCardsLabel" type="Label" parent="CenterContainer/GamePanel/MarginContainer/MainLayout/PlayerSection"]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+text = "No cards"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PlayerTotalLabel" type="Label" parent="CenterContainer/GamePanel/MarginContainer/MainLayout/PlayerSection"]
+layout_mode = 2
+text = "Total: 0"
+horizontal_alignment = 1
+
+[node name="Divider2" type="HSeparator" parent="CenterContainer/GamePanel/MarginContainer/MainLayout"]
+layout_mode = 2
+
+[node name="BetRow" type="HBoxContainer" parent="CenterContainer/GamePanel/MarginContainer/MainLayout"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 10
+
+[node name="BetLabel" type="Label" parent="CenterContainer/GamePanel/MarginContainer/MainLayout/BetRow"]
+layout_mode = 2
+text = "Bet Amount:"
+
+[node name="BetSpinBox" type="SpinBox" parent="CenterContainer/GamePanel/MarginContainer/MainLayout/BetRow"]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+min_value = 1.0
+max_value = 100.0
+step = 1.0
+value = 10.0
+prefix = "$"
+
+[node name="DealButton" type="Button" parent="CenterContainer/GamePanel/MarginContainer/MainLayout/BetRow"]
+custom_minimum_size = Vector2(140, 42)
+layout_mode = 2
+text = "Deal Cards"
+
+[node name="ActionRow" type="HBoxContainer" parent="CenterContainer/GamePanel/MarginContainer/MainLayout"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 10
+
+[node name="HitButton" type="Button" parent="CenterContainer/GamePanel/MarginContainer/MainLayout/ActionRow"]
+custom_minimum_size = Vector2(130, 44)
+layout_mode = 2
+disabled = true
+text = "Hit"
+
+[node name="StandButton" type="Button" parent="CenterContainer/GamePanel/MarginContainer/MainLayout/ActionRow"]
+custom_minimum_size = Vector2(130, 44)
+layout_mode = 2
+disabled = true
+text = "Stand"
+
+[node name="RestartButton" type="Button" parent="CenterContainer/GamePanel/MarginContainer/MainLayout/ActionRow"]
+custom_minimum_size = Vector2(130, 44)
+layout_mode = 2
+text = "Restart Game"

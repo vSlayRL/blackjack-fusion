@@ -2,365 +2,181 @@
 
 ## Overview
 
-**Blackjack Fusion** is a casual 3D multiplayer blackjack game designed around playing blackjack with friends.
+Blackjack Fusion is a Godot 4.7 project that is being built in iterations. The long-term goal is a 3D social Blackjack game. The current iteration intentionally focuses on a small, dependable Blackjack rules engine and a temporary 2D interface for proving that the game is playable.
 
-The goal of the project is to create a simple, approachable blackjack experience where players can play against the dealer while keeping the game social and easy to understand.
+Current scope:
 
-The project is being developed using the **Godot Engine** and **GDScript**.
-
----
-
-## Project Goals
-
-The main goals of Blackjack Fusion are:
-
-* Create a functional game of blackjack.
-* Provide a 3D environment for the game.
-* Allow multiple players to participate in a game.
-* Implement standard blackjack rules and game flow.
-* Keep the game simple and accessible for players.
-* Use object-oriented programming principles throughout the project.
-
----
-
-## Technology
-
-* **Game Engine:** Godot 4.7.2
-* **Programming Language:** GDScript
-* **Game Type:** 3D Multiplayer / Social Blackjack
-* **Version Control:** Git / GitHub
+* One player versus the dealer
+* Standard 52-card deck
+* Betting and bankroll
+* Hit and stand
+* Ace handling
+* Natural Blackjack
+* Dealer hits below 17 and stands on 17 or higher
+* Player/dealer busts
+* Wins, losses, and pushes
+* 3:2 Blackjack payout
+* No splitting
+* No doubling down
+* No multiplayer yet
+* No 3D presentation yet
 
 ---
 
-# Project Structure
+## Run the Project
 
-The project separates the blackjack system into multiple GDScript files. Each script has a specific responsibility so that the entire game does not have to be controlled by one large script.
+Open `project.godot` in Godot 4.7.x and press **F5**.
+
+The main project scene is:
 
 ```text
-Blackjack Fusion/
-│
-├── main.tscn
-├── game.tscn
-│
-├── blackjack_game.gd
-├── card.gd
-├── deck.gd
-├── dealer.gd
-├── hand.gd
-└── player.gd
+scenes/main.tscn
+```
+
+It loads the temporary playable interface from:
+
+```text
+scenes/game.tscn
+```
+
+The logic test scene is:
+
+```text
+scenes/tests.tscn
+```
+
+Run that scene with **F6** when you want to verify the Blackjack rules without the UI.
+
+---
+
+## Current Project Structure
+
+```text
+blackjack-fusion/
+├── project.godot
+├── README.txt
+├── assets/
+├── scenes/
+│   ├── main.tscn
+│   ├── game.tscn
+│   └── tests.tscn
+└── scripts/
+    ├── blackjack_game.gd
+    ├── card.gd
+    ├── dealer.gd
+    ├── deck.gd
+    ├── hand.gd
+    ├── player.gd
+    ├── tests.gd
+    └── ui/
+        └── game_ui.gd
 ```
 
 ---
 
-# GDScript Responsibilities
+## Script Responsibilities
 
-## `card.gd`
+### `card.gd`
+Represents one playing card. Stores rank and suit and provides the card's Blackjack value and display name.
 
-**Purpose:** Represents an individual playing card.
+### `deck.gd`
+Creates, shuffles, deals, and resets the standard 52-card deck.
 
-The `Card` class will contain the information needed to identify a card, such as:
+### `hand.gd`
+Stores cards belonging to a player/dealer and calculates the hand total. It also handles flexible Ace values, Blackjack, 21, and bust checks.
 
-* Rank
-* Suit
-* Value
+### `player.gd`
+Stores the player's bankroll, current bet, and hand. It handles placing bets and the win/loss/push/Blackjack payouts.
 
-Examples of cards include:
+### `dealer.gd`
+Stores the dealer's hand and applies the current dealer rule: hit below 17 and stand on 17 or higher.
 
-```text
-Ace of Spades
-King of Hearts
-7 of Diamonds
-```
-
-The card script focuses on the **data and properties of an individual card**.
-
----
-
-## `deck.gd`
-
-**Purpose:** Manages the deck of playing cards.
-
-The `Deck` class will be responsible for:
-
-* Creating a standard 52-card deck
-* Storing the available cards
-* Shuffling the deck
-* Dealing cards
-* Tracking cards that have already been dealt
-* Resetting the deck for a new round
-
-The general process is:
+### `blackjack_game.gd`
+The central game controller. It owns the deck, player, and dealer and controls round state:
 
 ```text
-Create 52 Cards
+Waiting for Bet
       ↓
-Shuffle Deck
-      ↓
-Deal Cards
-      ↓
-Cards are removed from available deck
-      ↓
-Round Ends
-      ↓
-Reset / Rebuild Deck
-      ↓
-Shuffle
-      ↓
-New Round
-```
-
----
-
-## `hand.gd`
-
-**Purpose:** Represents the cards currently held by a player or dealer.
-
-The `Hand` class will handle operations such as:
-
-* Adding cards
-* Removing/clearing cards
-* Calculating the hand's blackjack value
-* Checking for blackjack
-* Checking for a bust
-
-Both players and the dealer can have their own `Hand`.
-
-For example:
-
-```text
-Player
-  └── Hand
-       ├── Card
-       └── Card
-```
-
----
-
-## `player.gd`
-
-**Purpose:** Represents an individual player.
-
-The `Player` class will contain information and functionality related to a player, including:
-
-* Player name
-* Money/balance
-* Current bet
-* Current hand
-* Player actions
-
-A player's basic structure can be thought of as:
-
-```text
-Player
-├── Name
-├── Money
-├── Bet
-└── Hand
-```
-
----
-
-## `dealer.gd`
-
-**Purpose:** Represents the blackjack dealer.
-
-The `Dealer` class will manage the dealer's blackjack-specific behavior.
-
-This includes:
-
-* The dealer's hand
-* Drawing cards
-* Following the dealer's blackjack rules
-* Checking the dealer's final hand value
-* Determining when the dealer's turn is finished
-
-The dealer's turn occurs after the players have completed their turns.
-
----
-
-## `blackjack_game.gd`
-
-**Purpose:** Controls the overall blackjack game and round flow.
-
-This is the central script responsible for connecting the other blackjack classes together.
-
-It will manage the overall sequence of a round:
-
-```text
-Betting
-   ↓
 Initial Deal
-   ↓
+      ↓
 Player Turn
-   ↓
+      ↓
 Dealer Turn
-   ↓
-Determine Results
-   ↓
-Update Money
-   ↓
-End Round
-   ↓
-Start New Round
+      ↓
+Resolve Result
+      ↓
+Round Over
 ```
 
-`blackjack_game.gd` should coordinate the game rather than containing every piece of functionality itself.
+This script contains the Blackjack game flow but does not contain UI or 3D presentation code.
 
-For example, the game controller can tell the `Deck` to deal a card and then give that card to a player's `Hand`.
+### `ui/game_ui.gd`
+Temporary playable interface controller. Button presses call the public functions in `BlackjackGame`, then the interface refreshes from the resulting game state.
+
+The UI does not decide Blackjack rules. That separation is intentional so the same game logic can later power 3D cards, animations, and table interactions.
+
+### `tests.gd`
+Automated logic checks for cards, hands, deck behavior, betting, busts, dealer behavior, payouts, pushes, and complete rounds.
 
 ---
 
-# Game Flow
+## Temporary Playable Interface
 
-A typical blackjack round will follow this general structure:
+The current UI is deliberately simple. It exists so the team can demonstrate and manually play the game logic before any 3D work begins.
 
-### 1. Betting
+Controls:
 
-Players place their bets before cards are dealt.
+* **Bet Amount** - choose a wager before the round begins.
+* **Deal Cards** - starts a new round.
+* **Hit** - draws another player card.
+* **Stand** - ends the player turn and lets the dealer finish automatically.
+* **Restart Game** - resets the bankroll and starts a fresh game session.
 
-### 2. Initial Deal
+The dealer's second card remains hidden during the player's turn and is revealed when the round ends.
 
-Players and the dealer receive their starting cards.
+---
 
-### 3. Player Turns
+## Why the Logic Is Separate from the UI
 
-Players can perform standard blackjack actions such as:
+The project is structured so future presentation code does not need to rewrite Blackjack rules.
 
-* Hit
-* Stand
-
-Additional actions may be added as the project develops.
-
-### 4. Dealer Turn
-
-After the players finish, the dealer plays according to the game's blackjack rules.
-
-### 5. Determine Results
-
-The game compares the players' hands against the dealer's hand.
-
-Possible results include:
-
-* Player wins
-* Dealer wins
-* Push/tie
-* Blackjack
-* Bust
-
-### 6. Update Player Money
-
-The player's balance is updated based on the result of the round.
-
-### 7. Reset
-
-Once the round is complete:
+Current version:
 
 ```text
-Player Hands → Cleared
-Dealer Hand → Cleared
-Deck → Reset
-Deck → Shuffled
+Button Press
+    ↓
+BlackjackGame
+    ↓
+Game State Changes
+    ↓
+Text UI Refreshes
 ```
 
-The next round can then begin.
-
----
-
-# Object-Oriented Design
-
-The project is divided into separate classes so that each class has a specific responsibility.
-
-A simplified relationship between the classes is:
+Future 3D version:
 
 ```text
-              BlackjackGame
-                    │
-        ┌───────────┼───────────┐
-        ↓           ↓           ↓
-      Deck       Player       Dealer
-                   │            │
-                   ↓            ↓
-                 Hand         Hand
-                   │            │
-                   └─────┬──────┘
-                         ↓
-                       Card
+3D Table Interaction
+    ↓
+BlackjackGame
+    ↓
+Game State Changes
+    ↓
+Card Models / Animations / HUD Refresh
 ```
 
-This structure allows different parts of the game to be developed and tested independently.
-
-For example, the deck should be responsible for dealing cards, while the hand should be responsible for calculating the value of those cards.
+This lets the team replace the temporary interface later while keeping the tested game engine.
 
 ---
 
-# Scenes
+## Future Work
 
-## `main.tscn`
+Future iterations may add:
 
-The main entry point for the project.
+* 3D blackjack table
+* 3D card models and card animations
+* Player avatars/seating
+* Multiplayer/networking
+* Sound and visual feedback
+* Menus and game settings
 
-This scene will be responsible for starting the game and loading the appropriate game environment.
-
-## `game.tscn`
-
-The primary game scene where the blackjack table and gameplay environment will be located.
-
-The exact scene structure may change as development continues.
-
----
-
-# Multiplayer
-
-Blackjack Fusion is intended to support multiple players playing together.
-
-The multiplayer portion of the project will build on top of the core blackjack system.
-
-The blackjack logic is being kept separate from the visual/gameplay scenes so that the underlying rules can be managed independently from the 3D environment and multiplayer functionality.
-
----
-
-# Development Notes
-
-The project is currently under development. Some features described in this README represent the intended structure and functionality of the game and may change as development continues.
-
-When adding new functionality, try to keep each script focused on its intended responsibility rather than placing unrelated logic into `blackjack_game.gd`.
-
-For example:
-
-```text
-Card information       → card.gd
-Deck management        → deck.gd
-Hand calculations      → hand.gd
-Player information     → player.gd
-Dealer behavior        → dealer.gd
-Game/round flow        → blackjack_game.gd
-3D presentation        → Godot scenes
-```
-
-This makes the project easier for group members to understand, debug, and expand.
-
----
-
-# Current Development Philosophy
-
-The project is being developed incrementally.
-
-The initial focus is on getting the **core blackjack functionality** working correctly before expanding into more advanced visual, multiplayer, and presentation features.
-
-The intended progression is:
-
-```text
-Core Blackjack Logic
-        ↓
-Player / Dealer System
-        ↓
-Round Management
-        ↓
-3D Game Environment
-        ↓
-Multiplayer Features
-        ↓
-Additional Gameplay / Presentation Features
-```
-
-The final implementation may differ from this planned structure as development progresses.
+Those features are intentionally outside the current logic-focused iteration.
