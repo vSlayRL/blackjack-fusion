@@ -1,3 +1,5 @@
+## Registers rules, stores next-round preferences, and selects active rules.
+## Rule selection and individual rule usage are separate: inactive rules are reset every accepted round.
 class_name RuleManager
 extends RefCounted
 
@@ -11,6 +13,7 @@ var _catalog: Array[SpecialRule] = []
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 
 
+## Register the five supported rules and initialize random selection independently of the deck.
 func _init() -> void:
 	_rng.randomize()
 	register_rule(RerollRule.new())
@@ -20,6 +23,7 @@ func _init() -> void:
 	register_rule(MysteryCardRule.new())
 
 
+## Add a nonempty unique ID; return false rather than overwrite an existing rule.
 func register_rule(rule: SpecialRule) -> bool:
 	if rule == null or rule.rule_id == &"" or get_rule(rule.rule_id) != null:
 		return false
@@ -27,10 +31,12 @@ func register_rule(rule: SpecialRule) -> bool:
 	return true
 
 
+## Return a copied catalog array for UI construction; its rule objects are shared.
 func get_catalog() -> Array[SpecialRule]:
 	return _catalog.duplicate()
 
 
+## Find the registered rule by stable ID, returning null for an unknown ID.
 func get_rule(id: StringName) -> SpecialRule:
 	for rule in _catalog:
 		if rule.rule_id == id:
@@ -38,6 +44,7 @@ func get_rule(id: StringName) -> SpecialRule:
 	return null
 
 
+## Validate and store the next-round mode, unique selected IDs, and positive random count.
 func configure(mode: int, selected: Array[StringName], random_count: int = 1) -> bool:
 	if mode < RuleMode.OFF or mode > RuleMode.RANDOM_SELECTED or random_count < 1:
 		return false
@@ -53,10 +60,13 @@ func configure(mode: int, selected: Array[StringName], random_count: int = 1) ->
 	return true
 
 
+## Expose preferences with a copy of selected IDs, for the dialog and Restart.
 func get_configuration() -> Dictionary:
 	return {"mode": rule_mode, "selected": selected_rule_ids.duplicate(), "random_count": random_rule_count}
 
 
+## Reset all rules, then activate every selected rule or a uniformly shuffled subset.
+## Clamp the random count to available rules; repeat selections across rounds are allowed.
 func prepare_round() -> void:
 	active_rules.clear()
 	var available: Array[SpecialRule] = []
@@ -80,6 +90,7 @@ func prepare_round() -> void:
 		active_rules.append(rule)
 
 
+## Check the actual round selection rather than the next-round checkbox preferences.
 func is_rule_active(id: StringName) -> bool:
 	for rule in active_rules:
 		if rule.rule_id == id:
@@ -87,6 +98,7 @@ func is_rule_active(id: StringName) -> bool:
 	return false
 
 
+## Send the temporary context to active rules implementing the requested lifecycle hook.
 func dispatch(event: StringName, context: Dictionary) -> void:
 	for rule in active_rules:
 		match event:

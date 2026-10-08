@@ -1,3 +1,5 @@
+## Stores cards and computes their best Blackjack total.
+## This class recognizes two-card 21; PlayerHand decides whether its history allows a natural payout.
 class_name Hand
 extends Resource
 
@@ -5,6 +7,7 @@ extends Resource
 var cards: Array[Card] = []
 
 
+## Append a dealt card; safely ignore an unsuccessful draw represented by null.
 func add_card(card: Card) -> void:
 	if card == null:
 		return
@@ -12,10 +15,12 @@ func add_card(card: Card) -> void:
 	cards.append(card)
 
 
+## Remove the cards without changing a player bankroll or wager.
 func clear_hand() -> void:
 	cards.clear()
 
 
+## Replace a valid slot in place, preserving order and card count.
 func replace_card(index: int, replacement: Card) -> bool:
 	if index < 0 or index >= cards.size() or replacement == null:
 		return false
@@ -23,6 +28,7 @@ func replace_card(index: int, replacement: Card) -> bool:
 	return true
 
 
+## Count Aces as 11, then lower them to 1 one at a time while the total exceeds 21.
 func get_total() -> int:
 	var total := 0
 	var aces := 0
@@ -41,17 +47,21 @@ func get_total() -> int:
 	return total
 
 
+## Check the Ace-adjusted total, also used for exact Double Target matches.
 func is_bust() -> bool:
 	return get_total() > 21
 
 
+## Recognize two-card 21; split/reroll/rescue restrictions are checked separately.
 func is_blackjack() -> bool:
 	return cards.size() == 2 and get_total() == 21
 
 
+## Recognize any 21, including multi-card hands that earn ordinary winnings.
 func has_21() -> bool:
 	return get_total() == 21
 
 
+## Expose hand size for two-card actions such as Double and Split.
 func card_count() -> int:
 	return cards.size()

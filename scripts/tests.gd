@@ -1,3 +1,5 @@
+## Story-based logic and UI checks run from scenes/tests.tscn (F6).
+## Fixed draw sequences isolate rules; a shuffled demonstration shows normal round flow.
 extends Node
 
 var failures: int = 0
@@ -6,17 +8,21 @@ var failures: int = 0
 class ScriptedDeck extends Deck:
 	var draw_order: Array[Card] = []
 
+	## Restore the prescribed draw order, reversing it because Deck draws from the back.
 	func reset() -> void:
 		cards.assign(draw_order)
 		cards.reverse()
 
 
+## Record an expectation failure without skipping later checks; headless execution exits nonzero.
 func _expect(condition: bool, message: String = "Gameplay expectation failed") -> void:
 	if not condition:
 		failures += 1
 		push_error(message)
 
 
+## Run foundational checks, deterministic gameplay stories, and real UI interactions.
+## Await layout/input scenarios before reporting success or selecting the headless exit code.
 func _ready():
 	print("=== BLACKJACK FUSION LOGIC TESTS ===")
 
@@ -79,6 +85,7 @@ func _ready():
 		get_tree().quit(0 if failures == 0 else 1)
 
 
+## Check Ace, face-card, and numbered values plus a readable card name.
 func test_card_values() -> void:
 	var ace := Card.new(Card.Suit.SPADES, Card.Rank.ACE)
 	var king := Card.new(Card.Suit.HEARTS, Card.Rank.KING)
@@ -92,6 +99,7 @@ func test_card_values() -> void:
 	print("PASS: Card values and names")
 
 
+## Follow an Ace through a soft total, an extra card, and a fresh two-card Blackjack.
 func test_hand_ace_logic() -> void:
 	var hand := Hand.new()
 	hand.add_card(Card.new(Card.Suit.HEARTS, Card.Rank.ACE))
@@ -110,6 +118,7 @@ func test_hand_ace_logic() -> void:
 	print("PASS: Hand totals, Aces, and Blackjack")
 
 
+## Draw from a 52-card deck, verify the reduced count, then reset to a full deck.
 func test_deck() -> void:
 	var deck := Deck.new()
 	_expect(deck.cards_remaining() == 52)
@@ -124,6 +133,7 @@ func test_deck() -> void:
 	print("PASS: Deck creation, dealing, and reset")
 
 
+## Follow a bankroll through accepted/rejected wagers and win/loss/push payouts.
 func test_player_betting() -> void:
 	var player := Player.new("Test Player", 100.0)
 	_expect(player.place_bet(20.0))
@@ -148,6 +158,7 @@ func test_player_betting() -> void:
 	print("PASS: Betting and payouts")
 
 
+## Reject subminimum wagers and verify a low bankroll cannot start a new round.
 func test_minimum_bet() -> void:
 	var game := BlackjackGame.new()
 
@@ -161,6 +172,7 @@ func test_minimum_bet() -> void:
 	print("PASS: Minimum bet and low-bankroll protection")
 
 
+## Force a player bust and confirm immediate loss without additional dealer cards.
 func test_player_bust_ends_round() -> void:
 	var game := _new_active_game(20.0)
 
@@ -185,6 +197,7 @@ func test_player_bust_ends_round() -> void:
 	print("PASS: Player bust ends the round without a dealer turn")
 
 
+## Let the dealer hit below 17 and return the wager when final totals tie.
 func test_dealer_turn_and_push() -> void:
 	var game := _new_active_game(10.0)
 
@@ -208,6 +221,7 @@ func test_dealer_turn_and_push() -> void:
 	print("PASS: Dealer hits below 17 and push returns the bet")
 
 
+## Stand on a higher player total and check the ordinary winning bankroll.
 func test_player_win() -> void:
 	var game := _new_active_game(10.0)
 
@@ -226,6 +240,7 @@ func test_player_win() -> void:
 	print("PASS: Higher player total wins and pays correctly")
 
 
+## Stand while the dealer must draw, then verify a dealer bust pays the player.
 func test_dealer_bust() -> void:
 	var game := _new_active_game(10.0)
 
@@ -249,6 +264,7 @@ func test_dealer_bust() -> void:
 	print("PASS: Dealer bust pays the player")
 
 
+## Run a normal shuffled round to a valid outcome and print its cards and bankroll.
 func test_complete_random_round() -> void:
 	var game := BlackjackGame.new()
 	_expect(game.start_round(10.0))
@@ -274,6 +290,7 @@ func test_complete_random_round() -> void:
 	print("PASS: Complete round reaches a valid finished state")
 
 
+## Obtain a shuffled playable opening for tests that replace hands with controlled cards.
 func _new_active_game(bet_amount: float) -> BlackjackGame:
 	# Opening Blackjacks can legitimately end a random round immediately.
 	# For tests that need an active player turn, create a fresh game until
@@ -288,6 +305,7 @@ func _new_active_game(bet_amount: float) -> BlackjackGame:
 	return null
 
 
+## Format hand names for the console demonstration without changing the hand.
 func _hand_to_string(hand: Hand) -> String:
 	var names: Array[String] = []
 
@@ -297,6 +315,8 @@ func _hand_to_string(hand: Hand) -> String:
 	return ", ".join(names)
 
 
+## Deal a prescribed opening and draw sequence through real start_round/action code.
+## Optional flags configure real rules; deterministic seeds select actual Double Target activation.
 func _scenario(player_ranks: Array[int], dealer_ranks: Array[int], draws: Array[int], wager: float = 10.0, bankroll: float = 100.0, reroll_enabled: bool = false, second_chance_enabled: bool = false, lucky_nine_enabled: bool = false, double_target: int = 0, mystery_enabled: bool = false) -> BlackjackGame:
 	var game := BlackjackGame.new()
 	game.player.money = bankroll
@@ -326,6 +346,8 @@ func _scenario(player_ranks: Array[int], dealer_ranks: Array[int], draws: Array[
 	return game
 
 
+## Choose one replacement, reject premature/duplicate actions, and reset the choice next round.
+## Also cover discarded cards, empty-deck Keep, inactive rules, and five-rule Random selection.
 func test_mystery_card_flow() -> void:
 	var game := _scenario([10, 6], [10, 7], [8, 2], 10.0, 100.0, true, true, true, 25, true)
 	var original := game.player.hand.cards[1]
@@ -365,6 +387,8 @@ func test_mystery_card_flow() -> void:
 	print("PASS: Mystery Card locks opening actions, discards once, preserves other uses, resets next round, and joins Random mode")
 
 
+## Keep/replace into natural Blackjack, check 3:2 and double-Blackjack pushes, and retain dealer priority.
+## A later Reroll to two-card 21 must still pay ordinary winnings.
 func test_mystery_card_blackjacks() -> void:
 	var both := _scenario([14, 10], [14, 10], [2], 10.0, 100.0, true, true, true, 25, true)
 	_expect(not both.round_over and both.result == BlackjackGame.RoundResult.NONE and both.player.money == 90.0)
@@ -387,6 +411,8 @@ func test_mystery_card_blackjacks() -> void:
 	print("PASS: Kept and replaced opening Blackjack pay 3:2 or push; dealer priority waits for choice; later Reroll stays ordinary 21")
 
 
+## Qualify Lucky 9 after the opening choice, then combine recovery, Reroll, Double, and Split.
+## Check shared Double Target payouts and that opening hooks run exactly once after the choice.
 func test_mystery_card_combinations() -> void:
 	var lucky := _scenario([4, 10], [10, 7], [5, 10, 6, 10], 10.0, 100.0, true, true, true, 25, true)
 	_expect(not lucky.player.hands[0].lucky_nine_qualified)
@@ -421,6 +447,8 @@ func test_mystery_card_combinations() -> void:
 	print("PASS: Final opening controls Lucky 9; later Reroll/Second Chance preserve it; Double, Split, and Double Target continue normally")
 
 
+## Use Keep/Replace controls and inspect concealment, totals, dealer secrecy, and final results.
+## Exercise an actual Keep click and resize all five active rules across supported window sizes.
 func test_mystery_card_ui() -> void:
 	var viewport := SubViewport.new()
 	viewport.size = Vector2i(960, 640)
@@ -505,6 +533,7 @@ func test_mystery_card_ui() -> void:
 	print("PASS: Mystery UI conceals card/total/qualification, supports Keep/Replace, preserves dealer secrecy, and fits all supported sizes")
 
 
+## Find a seed producing the requested real target draw instead of overwriting rule state.
 func _seed_for_target(target_total: int) -> int:
 	# Seed the real round activation, rather than overwriting the target.
 	var probe := RandomNumberGenerator.new()
@@ -516,6 +545,7 @@ func _seed_for_target(target_total: int) -> int:
 	return 0
 
 
+## Bet $20, double to $40, draw 21, and verify the complete $140 bankroll flow.
 func test_double_flow() -> void:
 	var game := _scenario([5, 6], [10, 8], [10], 20.0)
 	_expect(game.player.money == 80.0)
@@ -529,6 +559,7 @@ func test_double_flow() -> void:
 	print("PASS: $100 -> bet $20 -> double to $40 -> draw 21 -> finish with $140")
 
 
+## Settle doubled wins/pushes/losses/busts and a wager using the exact remaining bankroll.
 func test_double_results() -> void:
 	var push_game := _scenario([5, 6], [10, 8], [7])
 	_expect(push_game.player_double())
@@ -545,6 +576,7 @@ func test_double_results() -> void:
 	print("PASS: Doubled push, loss, bust, and exact-bankroll wager settle correctly")
 
 
+## Reject unaffordable, wrong-size, ended-hand, and invalid split actions without side effects.
 func test_action_restrictions() -> void:
 	var waiting := BlackjackGame.new()
 	_expect(not waiting.player_double() and not waiting.player_split())
@@ -564,6 +596,7 @@ func test_action_restrictions() -> void:
 	print("PASS: Unavailable actions preserve money/cards; splitting accepts equal values")
 
 
+## Play two split eights in order, pushing one and doubling the second into a win.
 func test_split_then_double() -> void:
 	var game := _scenario([8, 8], [10, 8], [10, 3, 8])
 	_expect(game.player_split())
@@ -581,6 +614,7 @@ func test_split_then_double() -> void:
 	print("PASS: Split eights -> first hand pushes -> double second hand -> finish with $120")
 
 
+## Bust the first split hand while preserving play and a winning payout on the second.
 func test_split_bust_then_win() -> void:
 	var game := _scenario([8, 8], [10, 7], [10, 2, 5, 9])
 	_expect(game.player_split())
@@ -594,6 +628,7 @@ func test_split_bust_then_win() -> void:
 	print("PASS: One split hand busts; the other keeps playing and wins")
 
 
+## Bust every split hand and verify both losses without running the dealer.
 func test_all_split_hands_bust() -> void:
 	var game := _scenario([8, 8], [10, 6], [10, 10, 10, 10])
 	_expect(game.player_split() and game.player_hit() and game.player_hit())
@@ -604,6 +639,7 @@ func test_all_split_hands_bust() -> void:
 	print("PASS: All split hands bust -> no dealer draw -> both wagers lost")
 
 
+## Split Aces, deal one card to each, and verify automatic finishes with ordinary payouts.
 func test_split_aces() -> void:
 	var game := _scenario([14, 14], [10, 7], [10, 9])
 	_expect(game.player_split())
@@ -616,6 +652,7 @@ func test_split_aces() -> void:
 	print("PASS: Split Aces get one card each; Ace + 10 pays 1:1")
 
 
+## Create four ordered player hands and reject a fifth without deducting another stake.
 func test_resplit_limit() -> void:
 	var game := _scenario([8, 8], [10, 7], [8, 2, 8, 3, 8, 4, 2, 2, 3, 3])
 	_expect(game.player_split() and game.player_split() and game.player_split())
@@ -630,6 +667,7 @@ func test_resplit_limit() -> void:
 	print("PASS: Re-split to four hands; a fifth hand cannot be created")
 
 
+## Reach two split 21s and verify neither receives the natural 3:2 payout.
 func test_split_blackjack_payout() -> void:
 	var game := _scenario([10, 13], [10, 7], [14, 14])
 	_expect(game.player_split())
@@ -640,6 +678,7 @@ func test_split_blackjack_payout() -> void:
 	print("PASS: Two split 21s automatically finish and both pay normal winnings")
 
 
+## Pay both hands on dealer bust, then start a fresh round with one hand.
 func test_split_dealer_bust_and_reset() -> void:
 	var game := _scenario([8, 8], [10, 6], [10, 9, 10])
 	_expect(game.player_split() and game.player_stand() and game.player_stand())
@@ -654,6 +693,7 @@ func test_split_dealer_bust_and_reset() -> void:
 	print("PASS: Dealer bust pays each split hand; next round resets to one hand and a fresh deck")
 
 
+## Resolve player-only, dealer-only, and simultaneous naturals before extra wagers; stand on soft 17.
 func test_opening_blackjacks() -> void:
 	var player_natural := _scenario([14, 10], [10, 7], [])
 	_expect(player_natural.round_over and player_natural.player.money == 115.0)
@@ -668,6 +708,7 @@ func test_opening_blackjacks() -> void:
 	print("PASS: Opening Blackjack pays 3:2; dealer Blackjack blocks extra bets; soft 17 stands")
 
 
+## Reject actions needing unavailable cards and refund every stake when dealer drawing fails.
 func test_empty_deck_protection() -> void:
 	var game := _scenario([8, 8], [10, 7], [])
 	_expect(not game.player_double() and not game.player_split() and not game.player_hit())
@@ -681,6 +722,7 @@ func test_empty_deck_protection() -> void:
 	print("PASS: Card shortages do not consume action wagers; interrupted dealer refunds all hands")
 
 
+## Drive real button signals, inspect split panels and bankroll, restart, and verify responsive bounds.
 func test_playable_ui() -> void:
 	var ui_viewport := SubViewport.new()
 	ui_viewport.size = Vector2i(960, 640)
@@ -754,25 +796,32 @@ class TrackingRule extends SpecialRule:
 	var settled: int = 0
 	var finished: int = 0
 
+	## Create a test-only observer rule with a distinct ID for lifecycle-order checks.
 	func _init(id: StringName = &"test_rule") -> void:
 		super(id, "Test Rule", "Test-only observer")
 
+	## Count accepted-round notifications without retaining the temporary context.
 	func on_round_started(_context: Dictionary) -> void:
 		started += 1
 
+	## Count finalized playable openings to detect early or repeated qualification hooks.
 	func on_opening_dealt(_context: Dictionary) -> void:
 		dealt += 1
 
+	## Count action notifications for card changes.
 	func on_hand_changed(_context: Dictionary) -> void:
 		changed += 1
 
+	## Count pre-payout notifications when outcomes are ready.
 	func before_settlement(_context: Dictionary) -> void:
 		settled += 1
 
+	## Count completed/refunded rounds after settlement.
 	func on_round_finished(_context: Dictionary) -> void:
 		finished += 1
 
 
+## Validate unique registration and Off/Always/Random selections, including count clamping.
 func test_rule_manager() -> void:
 	var manager := RuleManager.new()
 	_expect(manager.register_rule(TrackingRule.new(&"one")))
@@ -805,6 +854,7 @@ func test_rule_manager() -> void:
 	print("PASS: Rule settings support Off, Always, and Random; only selected rules activate")
 
 
+## Observe start, opening, card change, settlement, and completion along one real round.
 func test_rule_hooks() -> void:
 	var game := _scenario([10, 5], [10, 8], [2])
 	game.player_stand()
@@ -818,6 +868,7 @@ func test_rule_hooks() -> void:
 	print("PASS: Registered rules receive round, deal, card-change, settlement, and finish hooks")
 
 
+## Hit to 17, replace a 10 with a 3, and verify one free use and discarded-card handling.
 func test_reroll_flow() -> void:
 	var game := _scenario([10, 5], [10, 8], [2, 3, 6], 10.0, 100.0, true)
 	_expect(game.player_hit() and game.player.hand.get_total() == 17)
@@ -832,6 +883,7 @@ func test_reroll_flow() -> void:
 	print("PASS: Hit to 17 -> replace the 10 with a 3 -> total 10; no extra bet and no second use")
 
 
+## Reroll into ordinary 21, bust, and an Ace-adjusted surviving hand, then check payouts.
 func test_reroll_results() -> void:
 	var win_game := _scenario([10, 5], [10, 8], [14], 10.0, 100.0, true)
 	_expect(win_game.player_reroll(1))
@@ -848,6 +900,7 @@ func test_reroll_results() -> void:
 	print("PASS: Rerolled 21 pays 1:1; replacement bust loses; Aces still adjust normally")
 
 
+## Spend or save Reroll across split hands, then regain the single use next round.
 func test_reroll_across_split_hands() -> void:
 	var game := _scenario([8, 8], [10, 7], [2, 3, 4, 6], 10.0, 100.0, true)
 	_expect(game.player_split() and game.player_reroll(1))
@@ -869,6 +922,7 @@ func test_reroll_across_split_hands() -> void:
 	print("PASS: Split hands share one Reroll; an unused Reroll can be saved for hand two; next round resets it")
 
 
+## Recalculate Double/Split eligibility after replacement and forbid rerolls on ended/split-Ace hands.
 func test_reroll_then_double_and_split() -> void:
 	var double_game := _scenario([5, 6], [10, 8], [4, 10], 10.0, 100.0, true)
 	_expect(double_game.player_reroll(0) and double_game.can_double())
@@ -883,6 +937,7 @@ func test_reroll_then_double_and_split() -> void:
 	print("PASS: Reroll can precede Double or Split; ended hands and split Aces cannot reroll")
 
 
+## Reject inactive/ended rounds, invalid indices, empty draws, and mid-round settings without spending usage.
 func test_reroll_rejections() -> void:
 	var off := _scenario([10, 5], [10, 8], [2])
 	_expect(not off.can_reroll() and not off.player_reroll(0))
@@ -906,6 +961,7 @@ func test_reroll_rejections() -> void:
 	print("PASS: Classic/ended rounds, invalid indices, empty deck, and mid-round settings reject changes safely")
 
 
+## Select/cancel through buttons, Escape, and real card clicks; verify Used state and resizing.
 func test_reroll_ui() -> void:
 	var viewport := SubViewport.new()
 	viewport.size = Vector2i(960, 640)
@@ -986,6 +1042,7 @@ func test_reroll_ui() -> void:
 	print("PASS: Rule settings, cancel/Escape, real card clicks, Used status, restart preferences, and responsive Reroll UI")
 
 
+## Recover one bust, accept another, share usage, and restore availability on the next deal.
 func test_second_chance_flow() -> void:
 	var game := _scenario([10, 5], [10, 7], [10, 8], 10.0, 100.0, false, true)
 	_expect(not game.can_second_chance() and not game.player_second_chance())
@@ -1009,6 +1066,7 @@ func test_second_chance_flow() -> void:
 	print("PASS: Hit to 25 -> pause -> discard the 10 -> continue at 15; one use, decline, empty deck, and next-round reset")
 
 
+## Save or spend recovery across splits and end a rescued Double with its doubled wager intact.
 func test_second_chance_split_and_double() -> void:
 	var game := _scenario([8, 8], [10, 8], [10, 5, 10, 10], 10.0, 100.0, false, true)
 	_expect(game.player_split() and game.player_hit() and game.player_second_chance())
@@ -1028,6 +1086,7 @@ func test_second_chance_split_and_double() -> void:
 	print("PASS: Split hands share Second Chance or save it for hand two; a rescued Double retains its wager and finishes")
 
 
+## Remove the exact replacement that caused a bust while keeping independent ability usage.
 func test_second_chance_with_reroll() -> void:
 	var game := _scenario([10, 5], [10, 7], [4, 10, 5], 10.0, 100.0, true, true)
 	_expect(game.player_hit() and game.player_reroll(1) and game.is_awaiting_second_chance())
@@ -1051,6 +1110,8 @@ func test_second_chance_with_reroll() -> void:
 	print("PASS: Reroll bust recovery removes the correct replacement; abilities have separate uses and Random chooses either")
 
 
+## Check net profit/loss for ordinary, natural, doubled, split, pushed, and refunded outcomes.
+## Clear the completed amount on an accepted new deal while preserving it after a rejected wager.
 func test_round_net_results() -> void:
 	var win := _scenario([10, 9], [10, 7], [])
 	_expect(not win.has_round_result and win.player_stand())
@@ -1079,6 +1140,7 @@ func test_round_net_results() -> void:
 	print("PASS: Net gains/losses account for Blackjack, Double, splits, push, refunds, and clear only on an accepted new round")
 
 
+## Exercise recovery/accept-bust controls, result colors, six-action layouts, and checkbox/title bounds.
 func test_second_chance_ui() -> void:
 	var viewport := SubViewport.new()
 	viewport.size = Vector2i(960, 640)
@@ -1166,6 +1228,7 @@ func test_second_chance_ui() -> void:
 	print("PASS: Second Chance buttons, accept-bust flow, colored net results, six-control layouts, and separated checkbox labels")
 
 
+## Open with 4+5 and win the 50% bonus, then verify Double keeps the original bonus base.
 func test_lucky_nine_flow() -> void:
 	var game := _scenario([4, 5], [10, 7], [10], 10.0, 100.0, false, false, true)
 	_expect(game.rules.is_rule_active(&"lucky_nine") and game.player.hands[0].lucky_nine_qualified)
@@ -1188,6 +1251,7 @@ func test_lucky_nine_flow() -> void:
 	print("PASS: Opening 4 + 5 -> hit to 19 -> win $10 plus $5 Lucky 9 bonus; Double keeps the opening-wager bonus")
 
 
+## Pay only eligible wins/dealer busts; exclude pushes, losses, refunds, soft 19, and inactive rules.
 func test_lucky_nine_outcomes() -> void:
 	var dealer_bust := _scenario([4, 5], [10, 6], [10, 10], 10.0, 100.0, false, false, true)
 	dealer_bust.player_hit()
@@ -1221,6 +1285,7 @@ func test_lucky_nine_outcomes() -> void:
 	print("PASS: Lucky 9 pays on dealer bust; no bonus for push, loss, bust, refund, dealer Blackjack, soft 19, or Classic mode")
 
 
+## Preserve original eligibility through Reroll/recovery, remove it on Split, and select it randomly.
 func test_lucky_nine_combinations() -> void:
 	var recovered := _scenario([4, 5], [10, 7], [10, 10, 5], 10.0, 100.0, true, true, true)
 	_expect(recovered.player_hit() and recovered.player_reroll(0) and recovered.can_second_chance())
@@ -1255,6 +1320,7 @@ func test_lucky_nine_combinations() -> void:
 	print("PASS: Lucky 9 survives Reroll/Second Chance, cannot be created by Reroll or duplicated by Split, and enters the Random pool")
 
 
+## Inspect potential/settled bonus labels, colored net amounts, resizing, and next-deal clearing.
 func test_lucky_nine_ui() -> void:
 	var viewport := SubViewport.new()
 	viewport.size = Vector2i(960, 640)
@@ -1313,6 +1379,7 @@ func test_lucky_nine_ui() -> void:
 	print("PASS: Lucky 9 qualification/bonus labels, three-rule layouts, and green/red results vanish on the next deal")
 
 
+## Draw every target 22-30, preserve the target during a round, and include it in Random selection.
 func test_double_target_randomization() -> void:
 	var manager := RuleManager.new()
 	var target_rule := manager.get_rule(&"double_target") as DoubleTargetRule
@@ -1339,6 +1406,7 @@ func test_double_target_randomization() -> void:
 	print("PASS: Double Target draws all nine totals from 22–30, resets when inactive, and joins the four-rule Random pool")
 
 
+## Win exact busts at all nine targets; check misses, Ace values, first-bust limits, and cent rounding.
 func test_double_target_flow() -> void:
 	for target_total in range(22, 31):
 		var game := _scenario([10, target_total - 20], [10, 2], [10, 10], 10.0, 100.0, false, false, false, target_total)
@@ -1365,6 +1433,7 @@ func test_double_target_flow() -> void:
 	print("PASS: Every exact target automatically returns $12.50 on a $10 wager; misses, Ace handling, and first-bust limits remain classic")
 
 
+## Recover or keep matching/missed busts and preserve Second Chance when taking a payout.
 func test_double_target_second_chance() -> void:
 	var kept := _scenario([10, 8], [10, 7], [7], 10.0, 100.0, false, true, false, 25)
 	_expect(kept.player_hit() and kept.is_awaiting_second_chance() and not kept.round_over and kept.player.money == 90.0)
@@ -1384,6 +1453,7 @@ func test_double_target_second_chance() -> void:
 	print("PASS: Exact-target bust offers recovery or payout; taking payout preserves Second Chance, which still recovers any other bust")
 
 
+## Settle split exact-bust claims independently, share the target, and refund canceled rounds.
 func test_double_target_splits() -> void:
 	var mixed := _scenario([8, 8], [10, 7], [10, 10, 7], 10.0, 100.0, false, false, false, 25)
 	_expect(mixed.player_split() and mixed.player_hit() and mixed.player.active_hand_index == 1 and mixed.get_double_target() == 25)
@@ -1407,6 +1477,7 @@ func test_double_target_splits() -> void:
 	print("PASS: Split hands share one target and settle independently; two exact busts both pay, saved/used recovery works, and cancellation refunds")
 
 
+## Combine doubled stakes, Reroll, recovery, and Lucky 9 without stacking its bonus onto a bust payout.
 func test_double_target_combinations() -> void:
 	var doubled := _scenario([10, 8], [10, 7], [7], 10.0, 100.0, false, false, false, 25)
 	_expect(doubled.player_double() and doubled.player.money == 105.0 and doubled.last_round_delta == 5.0)
@@ -1435,6 +1506,7 @@ func test_double_target_combinations() -> void:
 	print("PASS: Double Target uses doubled wagers and Reroll busts, excludes Lucky 9 stacking, preserves recovered Lucky 9 and naturals, and redraws on next round")
 
 
+## Display the target and recovery/payout choices, then check small-win colors, split summaries, and reset.
 func test_double_target_ui() -> void:
 	var viewport := SubViewport.new()
 	viewport.size = Vector2i(960, 640)

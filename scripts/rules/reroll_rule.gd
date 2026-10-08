@@ -1,25 +1,33 @@
+## Replaces one chosen active-hand card, once per player per round.
+## Player IDs share usage across split hands without retaining Player objects in this rule.
 class_name RerollRule
 extends SpecialRule
 
 var _used_players: Dictionary = {}
 
 
+## Describe the free, shared-use replacement in the settings catalog.
 func _init() -> void:
 	super(&"reroll", "Reroll", "Once per player per round, replace one card in the active hand. Split hands share this use. A replacement can bust; a rerolled 21 is a normal 21.", "Replace one active-hand card. Once per round, shared across split hands.")
 
 
+## Restore one Reroll use for each player when the next round is accepted.
 func reset_round() -> void:
 	_used_players.clear()
 
 
+## Check whether any hand belonging to this player spent the shared use.
 func has_used(player: Player) -> bool:
 	return _used_players.has(player.get_instance_id())
 
 
+## Require an active rule and an unused allowance; the game checks turn/deck eligibility.
 func can_use(player: Player) -> bool:
 	return active and not has_used(player)
 
 
+## Draw a replacement only for a valid unfinished hand, then consume the shared use.
+## The discarded card stays out of the deck and any resulting two-card 21 is ordinary 21.
 func apply(player: Player, deck: Deck, card_index: int) -> bool:
 	if not can_use(player):
 		return false

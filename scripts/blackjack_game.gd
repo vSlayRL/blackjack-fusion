@@ -1,3 +1,5 @@
+## Coordinates wagers, opening choices, player hands, dealer play, and settlement.
+## UI code requests actions here; the engine owns legality and outcomes for both 2D and future 3D views.
 class_name BlackjackGame
 extends Resource
 
@@ -32,6 +34,7 @@ var last_rule_message: String = ""
 var last_round_delta: float = 0.0
 var has_round_result: bool = false
 var _round_start_money: float = 0.0
+# Keep the changed slot, not just the last slot: a Reroll can bust from anywhere.
 var _pending_bust_index: int = -1
 var _pending_bust_action: StringName = &""
 var state: int = RoundState.WAITING_FOR_BET
@@ -42,12 +45,15 @@ var round_over: bool = true
 var status_message: String = "Place a bet to begin."
 
 
+## Create a fresh deck, $100 player bankroll, dealer, and default rule manager.
 func _init():
 	deck = Deck.new()
 	player = Player.new("Steve", 100.0)
 	dealer = Dealer.new()
 
 
+## Accept a legal wager, reset deck/rules/results, and deal alternating player/dealer cards.
+## Mystery Card pauses before opening checks; otherwise natural Blackjack resolves immediately.
 func start_round(bet_amount: float) -> bool:
 	if not round_over:
 		status_message = "The current round is still in progress."
@@ -88,18 +94,22 @@ func start_round(bet_amount: float) -> bool:
 	return true
 
 
+## Report the opening-choice phase, during which normal player actions are locked.
 func is_awaiting_mystery_card() -> bool:
 	return not round_over and state == RoundState.MYSTERY_CARD_CHOICE
 
 
+## Conceal only the second card of the original hand while its opening choice is pending.
 func is_player_card_hidden(hand_index: int, card_index: int) -> bool:
 	return is_awaiting_mystery_card() and hand_index == 0 and card_index == 1
 
 
+## Require the pending opening choice and a card available for replacement.
 func can_replace_mystery_card() -> bool:
 	return is_awaiting_mystery_card() and not deck.is_empty()
 
 
+## Finalize Keep/Replace, reveal the resulting hand, and resolve opening checks once.
 func player_choose_mystery_card(replace_card: bool = false) -> bool:
 	if not is_awaiting_mystery_card():
 		return false
@@ -113,6 +123,7 @@ func player_choose_mystery_card(replace_card: bool = false) -> bool:
 	return true
 
 
+## Resolve naturals first, then let playable-opening hooks lock in Lucky 9 eligibility.
 func _finalize_opening() -> void:
 	_check_starting_blackjacks()
 	if not round_over:
@@ -120,6 +131,7 @@ func _finalize_opening() -> void:
 		_notify_rules(&"opening_dealt")
 
 
+## Draw on the active hand; bust may pause for recovery, and any 21 finishes the hand.
 func player_hit() -> bool:
 	if not is_player_turn():
 		return false
@@ -137,6 +149,7 @@ func player_hit() -> bool:
 	return true
 
 
+## Finish the current hand, or accept a pending bust/Double Target payout without spending recovery.
 func player_stand() -> bool:
 	if is_awaiting_second_chance():
 		last_rule_message = "Double Target payout accepted." if is_double_target_match(player.hands[player.active_hand_index]) else "Bust accepted."
@@ -149,6 +162,8 @@ func player_stand() -> bool:
 	return true
 
 
+## Allow an affordable matched wager on an active two-card hand with a draw available.
+## Split Aces and pending opening/bust decisions cannot double.
 func can_double() -> bool:
 	return (
 		is_player_turn()
@@ -160,6 +175,7 @@ func can_double() -> bool:
 	)
 
 
+## Reserve a matching wager, draw exactly one card, then end or offer bust recovery.
 func player_double() -> bool:
 	if not can_double():
 		return false
@@ -180,6 +196,7 @@ func player_double() -> bool:
 	return true
 
 
+## Require equal Blackjack values, two replacement cards, enough money, and fewer than four hands.
 func can_split() -> bool:
 	return (
 		is_player_turn()
@@ -193,6 +210,8 @@ func can_split() -> bool:
 	)
 
 
+## Create a separately wagered hand immediately after the current hand.
+## Split Aces and split 21 finish automatically; Lucky 9 is removed from split hands.
 func player_split() -> bool:
 	if not can_split():
 		return false
@@ -221,6 +240,7 @@ func player_split() -> bool:
 	return true
 
 
+## Store preferences only between rounds, keeping the current rule selection immutable.
 func configure_rules(mode: int, selected: Array[StringName], random_count: int = 1) -> bool:
 	# Settings are frozen for the duration of the current round.
 	if not round_over:
@@ -228,6 +248,7 @@ func configure_rules(mode: int, selected: Array[StringName], random_count: int =
 	return rules.configure(mode, selected, random_count)
 
 
+## Check active-hand eligibility, shared usage, deck availability, and an optional card index.
 func can_reroll(card_index: int = -1) -> bool:
 	var rule := rules.get_rule(&"reroll") as RerollRule
 	if not is_player_turn() or rule == null or not rule.can_use(player):
@@ -237,6 +258,7 @@ func can_reroll(card_index: int = -1) -> bool:
 	return card_index == -1 or (card_index >= 0 and card_index < player.hand.card_count())
 
 
+## Replace a chosen card, dispatch card-change hooks, then evaluate bust/21 normally.
 func player_reroll(card_index: int) -> bool:
 	if card_index < 0 or not can_reroll(card_index):
 		return false
@@ -256,6 +278,8 @@ func player_reroll(card_index: int) -> bool:
 	return true
 
 
+## Record the exact bust-causing card for optional recovery, or finish the hand.
+## An exact Double Target match offers its payout as the alternative to Second Chance.
 func _handle_player_bust(action: StringName, card_index: int) -> void:
 	var rule := rules.get_rule(&"second_chance") as SecondChanceRule
 	if rule != null and rule.can_use(player) and not player.hands[player.active_hand_index].split_aces:
@@ -268,25 +292,30 @@ func _handle_player_bust(action: StringName, card_index: int) -> void:
 		_advance_hand()
 
 
+## Expose the fixed active target for the UI, or zero when the rule is inactive.
 func get_double_target() -> int:
 	var rule := rules.get_rule(&"double_target") as DoubleTargetRule
 	return rule.target_total if rule != null and rule.active else 0
 
 
+## Ask the active rule whether this hand has the exact eligible bust total.
 func is_double_target_match(played_hand: PlayerHand) -> bool:
 	var rule := rules.get_rule(&"double_target") as DoubleTargetRule
 	return rule != null and rule.matches(played_hand.hand)
 
 
+## Detect a recorded bust decision before dealer play or settlement can continue.
 func is_awaiting_second_chance() -> bool:
 	return not round_over and state == RoundState.PLAYER_TURN and _pending_bust_index >= 0 and player.hand.is_bust()
 
 
+## Require both a pending bust and unused active recovery.
 func can_second_chance() -> bool:
 	var rule := rules.get_rule(&"second_chance") as SecondChanceRule
 	return is_awaiting_second_chance() and rule != null and rule.can_use(player)
 
 
+## Remove the recorded card and resume the hand; a rescued Double still ends immediately.
 func player_second_chance() -> bool:
 	if not can_second_chance():
 		return false
@@ -308,10 +337,13 @@ func player_second_chance() -> bool:
 	return true
 
 
+## Build a temporary lifecycle context for active rules without coupling them to UI nodes.
 func _notify_rules(event: StringName, action: StringName = &"", card_index: int = -1) -> void:
 	rules.dispatch(event, {"game": self, "player": player, "dealer": dealer, "deck": deck, "hand": player.hands[player.active_hand_index], "action": action, "card_index": card_index})
 
 
+## Finish the current hand and move to the next unfinished split hand.
+## After the last hand, skip dealer draws if every hand busted; otherwise play the dealer.
 func _advance_hand() -> void:
 	_pending_bust_index = -1
 	_pending_bust_action = &""
@@ -339,6 +371,7 @@ func _advance_hand() -> void:
 		_resolve_round()
 
 
+## Draw until the dealer reaches 17 or busts; a failed draw refunds every wager.
 func dealer_turn() -> void:
 	if round_over or state != RoundState.DEALER_TURN:
 		return
@@ -351,18 +384,22 @@ func dealer_turn() -> void:
 			break
 
 
+## Allow normal actions only on an unfinished hand outside opening and bust decisions.
 func is_player_turn() -> bool:
 	return not round_over and state == RoundState.PLAYER_TURN and not player.is_standing and not is_awaiting_second_chance()
 
 
+## Check the dealer phase; direct calls outside it cannot draw dealer cards.
 func is_dealer_turn() -> bool:
 	return not round_over and state == RoundState.DEALER_TURN
 
 
+## Require a finished previous round and enough bankroll for the minimum wager.
 func can_start_round() -> bool:
 	return round_over and player.money >= MINIMUM_BET
 
 
+## Describe a completed single hand or combine results for all split hands.
 func get_result_text() -> String:
 	if not round_over or result == RoundResult.NONE:
 		return "Round is still in progress."
@@ -374,6 +411,7 @@ func get_result_text() -> String:
 	return "\n".join(summaries)
 
 
+## Translate a result enum into player-facing text, including Double Target small wins.
 func get_hand_result_text(hand_result: int) -> String:
 	match hand_result:
 		RoundResult.PLAYER_BLACKJACK:
@@ -396,6 +434,7 @@ func get_hand_result_text(hand_result: int) -> String:
 			return "Round is still in progress."
 
 
+## Draw into the active player hand and report failure without adding a null card.
 func _deal_to_player() -> bool:
 	var card := deck.deal_card()
 	if card == null:
@@ -404,6 +443,7 @@ func _deal_to_player() -> bool:
 	return true
 
 
+## Draw into the dealer hand and report failure for opening/dealer cancellation.
 func _deal_to_dealer() -> bool:
 	var card := deck.deal_card()
 	if card == null:
@@ -412,6 +452,8 @@ func _deal_to_dealer() -> bool:
 	return true
 
 
+## Resolve two naturals as a push, player-only as 3:2, or dealer-only as a loss.
+## When Mystery Card is active, this runs only after the opening choice is complete.
 func _check_starting_blackjacks() -> void:
 	var player_blackjack := player.hands[0].is_natural_blackjack()
 	var dealer_blackjack := dealer.hand.is_blackjack()
@@ -425,6 +467,7 @@ func _check_starting_blackjacks() -> void:
 		_update_player_status()
 
 
+## Assign each hand its outcome; exact Double Target busts take priority over ordinary bust losses.
 func _resolve_round() -> void:
 	for played_hand in player.hands:
 		if is_double_target_match(played_hand):
@@ -442,11 +485,14 @@ func _resolve_round() -> void:
 	_complete_round()
 
 
+## Assign the immediate opening outcome and route it through shared settlement.
 func _finish_round(round_result: int) -> void:
 	player.hands[player.active_hand_index].result = round_result
 	_complete_round()
 
 
+## Prepare rule bonuses, settle every hand once, and record per-hand and overall net results.
+## Returned stakes are separated from profit; the previous active hand is restored for display.
 func _complete_round() -> void:
 	_notify_rules(&"before_settlement")
 	var previous_index := player.active_hand_index
@@ -466,6 +512,8 @@ func _complete_round() -> void:
 			_:
 				player.lose()
 		player.money += player.hands[i].bonus_payout
+		# money_before is measured after wagers were reserved, so subtract the
+		# retained stake to distinguish returned principal from actual profit.
 		player.hands[i].net_result = player.money - money_before - player.hands[i].wager
 	player.active_hand_index = previous_index
 	result = player.hands[0].result
@@ -476,6 +524,7 @@ func _complete_round() -> void:
 	_notify_rules(&"round_finished")
 
 
+## Refund all outstanding wagers, clear bonuses, and finish an incomplete round neutrally.
 func _cancel_round(message: String) -> void:
 	var previous_index := player.active_hand_index
 	for i in range(player.hands.size()):
@@ -497,11 +546,13 @@ func _cancel_round(message: String) -> void:
 	_notify_rules(&"round_finished")
 
 
+## Compare final bankroll with its value before the opening wager, including all split stakes.
 func _record_round_delta() -> void:
 	last_round_delta = player.money - _round_start_money
 	has_round_result = true
 
 
+## Describe the current player hand after an action that permits continued play.
 func _update_player_status() -> void:
 	status_message = "Player turn. Hit, stand, double, or split when available."
 	if player.hands.size() > 1:

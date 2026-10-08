@@ -1,3 +1,5 @@
+## Presents the game through responsive card panels, controls, and a rule-settings dialog.
+## The view renders engine state, including concealment; BlackjackGame remains responsible for legality and payouts.
 extends Control
 
 const INK := Color("eff5f1")
@@ -44,6 +46,7 @@ var rule_checkboxes: Dictionary = {}
 @onready var replace_mystery_button: Button = %ReplaceMysteryButton
 
 
+## Create the engine, build UI styling/settings, and connect controls to action handlers.
 func _ready() -> void:
 	game = BlackjackGame.new()
 	_build_theme()
@@ -64,36 +67,42 @@ func _ready() -> void:
 	_refresh_ui()
 
 
+## Exit card selection, request a round at the entered wager, and refresh the view.
 func _on_deal_pressed() -> void:
 	_selecting_reroll = false
 	game.start_round(bet_spin_box.value)
 	_refresh_ui()
 
 
+## Submit Hit to the engine and redraw its resulting state.
 func _on_hit_pressed() -> void:
 	_selecting_reroll = false
 	game.player_hit()
 	_refresh_ui()
 
 
+## Submit Stand or the pending bust/payout decision, then redraw.
 func _on_stand_pressed() -> void:
 	_selecting_reroll = false
 	game.player_stand()
 	_refresh_ui()
 
 
+## Request a matched-wager Double; the engine validates and finishes the action.
 func _on_double_pressed() -> void:
 	_selecting_reroll = false
 	game.player_double()
 	_refresh_ui()
 
 
+## Request Split and rebuild hand panels to reflect the ordered hand list.
 func _on_split_pressed() -> void:
 	_selecting_reroll = false
 	game.player_split()
 	_refresh_ui()
 
 
+## Start a fresh $100 session while preserving rule preferences and resetting UI selection.
 func _on_restart_pressed() -> void:
 	var settings := game.rules.get_configuration()
 	game = BlackjackGame.new()
@@ -104,6 +113,7 @@ func _on_restart_pressed() -> void:
 	_refresh_ui()
 
 
+## Enter or cancel card selection; selection alone never spends the Reroll allowance.
 func _on_reroll_pressed() -> void:
 	if _selecting_reroll:
 		_selecting_reroll = false
@@ -113,18 +123,21 @@ func _on_reroll_pressed() -> void:
 	_refresh_ui()
 
 
+## Request removal of the recorded bust-causing card and display the new hand.
 func _on_second_chance_pressed() -> void:
 	_selecting_reroll = false
 	game.player_second_chance()
 	_refresh_ui()
 
 
+## Submit Keep/Replace and immediately redraw the finalized, revealed opening hand.
 func _on_mystery_choice(replace_card: bool) -> void:
 	_selecting_reroll = false
 	game.player_choose_mystery_card(replace_card)
 	_refresh_ui()
 
 
+## Accept mouse or Enter/Space selection on an eligible highlighted Reroll card.
 func _on_card_gui_input(event: InputEvent, hand_index: int, card_index: int) -> void:
 	var clicked: bool = event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed
 	var confirmed: bool = event is InputEventKey and event.pressed and not event.echo and event.keycode in [KEY_ENTER, KEY_KP_ENTER, KEY_SPACE]
@@ -133,6 +146,7 @@ func _on_card_gui_input(event: InputEvent, hand_index: int, card_index: int) -> 
 		get_viewport().set_input_as_handled()
 
 
+## Ignore clicks from other hands, apply the chosen replacement, then exit selection.
 func _choose_reroll_card(hand_index: int, card_index: int) -> void:
 	if not _selecting_reroll or hand_index != game.player.active_hand_index or hand_index != _selection_hand_index:
 		return
@@ -141,6 +155,7 @@ func _choose_reroll_card(hand_index: int, card_index: int) -> void:
 	_refresh_ui()
 
 
+## Use Escape to cancel Reroll selection without consuming its use.
 func _unhandled_key_input(event: InputEvent) -> void:
 	if _selecting_reroll and event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
 		_selecting_reroll = false
@@ -148,6 +163,8 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 
+## Synchronize money, results, cards, prompts, and button eligibility from the engine.
+## The opening choice uses separate controls; completed net results stay hidden during a new round.
 func _refresh_ui() -> void:
 	if not game.can_reroll() or game.player.active_hand_index != _selection_hand_index:
 		_selecting_reroll = false
@@ -213,6 +230,7 @@ func _refresh_ui() -> void:
 	_last_hand_count = game.player.hands.size()
 
 
+## Prioritize pending decisions and card selection, then summarize normal or completed play.
 func _status_text() -> String:
 	if game.is_awaiting_mystery_card():
 		return game.status_message
@@ -245,6 +263,7 @@ func _status_text() -> String:
 	return "Round complete — %d won / %d lost / %d pushed. Deal to play again." % [wins, losses, pushes]
 
 
+## Show the dealer opening card while concealing its hole card until round completion.
 func _render_dealer_cards() -> void:
 	_clear_children(dealer_cards)
 	if game.dealer.hand.cards.is_empty():
@@ -255,6 +274,8 @@ func _render_dealer_cards() -> void:
 		dealer_cards.add_child(_card_tile(game.dealer.hand.cards[i], i == 1 and not game.round_over))
 
 
+## Rebuild hand panels with active outlines, wagers, totals, bonuses, and card controls.
+## Mystery Card conceals the second card and total; qualification is not displayed before the choice.
 func _render_player_hands() -> void:
 	_clear_children(hands_grid)
 	hand_panels.clear()
@@ -342,6 +363,7 @@ func _render_player_hands() -> void:
 		layout.move_child(details, 1)
 
 
+## Choose a badge for the opening choice, active turn, recovery, queued hand, or final result.
 func _hand_status(played_hand: PlayerHand, active: bool) -> String:
 	if played_hand.hand.cards.is_empty():
 		return "WAITING FOR THE DEAL"
@@ -364,13 +386,14 @@ func _hand_status(played_hand: PlayerHand, active: bool) -> String:
 	return "UP NEXT"
 
 
-func _card_tile(card: Card, hidden: bool = false) -> PanelContainer:
+## Build a scalable card face or generic hidden back; hidden tooltips expose no card identity.
+func _card_tile(card: Card, is_hidden: bool = false) -> PanelContainer:
 	var tile := PanelContainer.new()
 	tile.custom_minimum_size = Vector2(72, 88)
-	tile.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	tile.set_meta("hidden", hidden)
-	tile.tooltip_text = "Hidden Card" if hidden else card.get_card_name()
-	var style := _panel_style(Color("244f43") if hidden else Color("f5f3e9"), Color("739286") if hidden else Color("d9dbc9"), 1, 8)
+	tile.mouse_filter = Control.MOUSE_FILTER_PASS
+	tile.set_meta("hidden", is_hidden)
+	tile.tooltip_text = "Hidden Card" if is_hidden else card.get_card_name()
+	var style := _panel_style(Color("244f43") if is_hidden else Color("f5f3e9"), Color("739286") if is_hidden else Color("d9dbc9"), 1, 8)
 	style.content_margin_left = 10
 	style.content_margin_right = 10
 	style.content_margin_top = 4
@@ -383,7 +406,7 @@ func _card_tile(card: Card, hidden: bool = false) -> PanelContainer:
 	tile.add_child(labels)
 	var red := card.suit == Card.Suit.HEARTS or card.suit == Card.Suit.DIAMONDS
 	var color := Color("a12d43") if red else Color("172922")
-	if hidden:
+	if is_hidden:
 		labels.add_child(_centered_label("?", 36, GOLD))
 		labels.add_child(_centered_label("HIDDEN", 12, INK))
 	else:
@@ -397,6 +420,7 @@ func _card_tile(card: Card, hidden: bool = false) -> PanelContainer:
 	return tile
 
 
+## Scale card size and type consistently with the current window width.
 func _size_card_tile(tile: PanelContainer) -> void:
 	var width := clampi(int(size.x / 16.0), 72, 108)
 	tile.custom_minimum_size = Vector2(width, int(width * 1.23))
@@ -407,6 +431,7 @@ func _size_card_tile(tile: PanelContainer) -> void:
 		labels.get_child(2).add_theme_font_size_override("font_size", int(width * 0.125))
 
 
+## Display only the visible opening value while the dealer hole card is concealed.
 func _get_dealer_total_text() -> String:
 	if game.dealer.hand.cards.is_empty():
 		return "Total: ?"
@@ -415,6 +440,8 @@ func _get_dealer_total_text() -> String:
 	return "Showing: %d" % game.dealer.hand.cards[0].get_blackjack_value()
 
 
+## Adapt margins, hand/action columns, card sizes, and rule summaries to the window.
+## Center the settings dialog using explicit pixel truncation and keep the active hand in view.
 func _apply_responsive_layout() -> void:
 	if not is_node_ready():
 		return
@@ -423,7 +450,7 @@ func _apply_responsive_layout() -> void:
 	active_rules_label.text = _get_rules_text()
 	active_rules_label.tooltip_text = _get_rules_text(true)
 	if rule_dialog.visible:
-		rule_dialog.position = Vector2i(maxi(0, int(size.x - rule_dialog.size.x) / 2), maxi(0, int(size.y - rule_dialog.size.y) / 2))
+		rule_dialog.position = Vector2i(maxi(0, int((size.x - rule_dialog.size.x) / 2.0)), maxi(0, int((size.y - rule_dialog.size.y) / 2.0)))
 	var narrow := size.x < 900.0
 	%BetRow.visible = game.round_over
 	$WindowMargin/Layout/Header/TitleGroup/Subtitle.visible = size.x >= 760.0
@@ -449,11 +476,13 @@ func _apply_responsive_layout() -> void:
 		_request_hand_focus()
 
 
+## Wait several layout frames before scrolling to the measured active hand.
 func _request_hand_focus() -> void:
 	_focus_frames = 3
 	set_process(true)
 
 
+## Complete the deferred focus request and stop processing until another layout change.
 func _process(_delta: float) -> void:
 	_focus_frames -= 1
 	if _focus_frames <= 0:
@@ -461,6 +490,7 @@ func _process(_delta: float) -> void:
 		_focus_active_hand()
 
 
+## Scroll the active panel or its first card row into view without double-applying offsets.
 func _focus_active_hand() -> void:
 	if not game.player.hand.cards.is_empty() and game.player.active_hand_index < hand_panels.size():
 		var panel := hand_panels[game.player.active_hand_index]
@@ -475,6 +505,7 @@ func _focus_active_hand() -> void:
 			table_scroll.ensure_control_visible(panel)
 
 
+## Apply shared colors, typography, and button states for readable, consistent controls.
 func _build_theme() -> void:
 	var ui_theme := Theme.new()
 	ui_theme.default_font_size = 20
@@ -500,6 +531,7 @@ func _build_theme() -> void:
 	deal_button.add_theme_color_override("font_color", Color("1c2b21"))
 
 
+## Create a reusable rounded panel/button style with explicit borders and padding.
 func _panel_style(color: Color, border: Color, width: int = 1, radius: int = 12) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
 	style.bg_color = color
@@ -513,8 +545,11 @@ func _panel_style(color: Color, border: Color, width: int = 1, radius: int = 12)
 	return style
 
 
+## Create wrapping text with a positive minimum width; parent containers supply its final width.
 func _label(text: String, font_size: int, color: Color) -> Label:
 	var label := Label.new()
+	label.custom_minimum_size.x = 1.0
+	label.mouse_filter = Control.MOUSE_FILTER_PASS
 	label.text = text
 	label.add_theme_font_size_override("font_size", font_size)
 	label.add_theme_color_override("font_color", color)
@@ -522,6 +557,7 @@ func _label(text: String, font_size: int, color: Color) -> Label:
 	return label
 
 
+## Create nonwrapping, mouse-transparent rank/suit text inside a card tile.
 func _centered_label(text: String, font_size: int, color: Color) -> Label:
 	var label := _label(text, font_size, color)
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -530,47 +566,53 @@ func _centered_label(text: String, font_size: int, color: Color) -> Label:
 	return label
 
 
+## Detach old generated controls before queuing them for deletion and rebuilding the view.
 func _clear_children(parent: Node) -> void:
 	for child in parent.get_children():
 		parent.remove_child(child)
 		child.queue_free()
 
 
+## Describe actual active rules during play and saved preferences between rounds.
+## A compact five-rule line keeps small-window totals visible; the tooltip retains full usage information.
 func _get_rules_text(expanded: bool = false) -> String:
 	if not game.round_over:
 		if game.rules.active_rules.is_empty():
 			return "THIS ROUND — Classic Blackjack"
-		var names: PackedStringArray = []
+		var active_rule_names: PackedStringArray = []
 		for rule in game.rules.active_rules:
 			var title := rule.display_name
 			if (rule is RerollRule or rule is SecondChanceRule) and (expanded or size.x >= 760.0 or game.rules.active_rules.size() < 5):
 				title += " · used" if rule.has_used(game.player) else " · ready"
 			elif rule is DoubleTargetRule:
 				title += ": %d" % rule.target_total
-			names.append(title)
-		return "THIS ROUND — " + ", ".join(names)
+			active_rule_names.append(title)
+		return "THIS ROUND — " + ", ".join(active_rule_names)
 	var settings := game.rules.get_configuration()
 	if settings.mode == RuleManager.RuleMode.OFF:
 		return "NEXT ROUND — Classic · special rules off"
-	var names: PackedStringArray = []
+	var selected_rule_names: PackedStringArray = []
 	for id in settings.selected:
-		names.append(game.rules.get_rule(id).display_name)
-	if names.is_empty():
+		selected_rule_names.append(game.rules.get_rule(id).display_name)
+	if selected_rule_names.is_empty():
 		return "NEXT ROUND — Classic · no rules selected"
 	var mode := "Random" if settings.mode == RuleManager.RuleMode.RANDOM_SELECTED else "Always active"
-	return "NEXT ROUND — %s: %s" % [mode, ", ".join(names)]
+	return "NEXT ROUND — %s: %s" % [mode, ", ".join(selected_rule_names)]
 
 
+## Format profit/loss with a sign, reserving an unsigned $0.00 for neutral outcomes.
 func _money_delta(amount: float) -> String:
 	if is_zero_approx(amount):
 		return "$0.00"
 	return ("+$%.2f" if amount > 0.0 else "−$%.2f") % absf(amount)
 
 
+## Use green for profit, red for loss, and muted text for neutral results.
 func _delta_color(amount: float) -> Color:
 	return GAIN if amount > 0.0 else (LOSS if amount < 0.0 else MUTED)
 
 
+## Build catalog-driven settings with stable checkbox/text bounds and a scrollable rule list.
 func _build_rule_dialog() -> void:
 	rule_dialog = AcceptDialog.new()
 	rule_dialog.title = "Round Rules"
@@ -665,12 +707,14 @@ func _build_rule_dialog() -> void:
 	layout.add_child(note)
 
 
+## Let clicking the separate title toggle its checkbox without moving text into the icon.
 func _on_rule_title_input(event: InputEvent, checkbox: CheckBox) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 		checkbox.button_pressed = not checkbox.button_pressed
 		checkbox.get_viewport().set_input_as_handled()
 
 
+## Restore saved preferences into the dialog so Cancel never changes engine settings.
 func _populate_rule_settings() -> void:
 	var settings := game.rules.get_configuration()
 	rule_mode_option.select(settings.mode)
@@ -680,6 +724,7 @@ func _populate_rule_settings() -> void:
 	_on_rule_mode_selected(rule_mode_option.selected)
 
 
+## Open editable settings between rounds only, clamped to the available window size.
 func _on_rules_pressed() -> void:
 	if not game.round_over:
 		return
@@ -687,10 +732,12 @@ func _on_rules_pressed() -> void:
 	rule_dialog.popup_centered_clamped(Vector2i(540, 420), 0.9)
 
 
+## Enable the rule-count control only when Random mode is selected.
 func _on_rule_mode_selected(_index: int) -> void:
 	random_count_spin.editable = rule_mode_option.get_selected_id() == RuleManager.RuleMode.RANDOM_SELECTED
 
 
+## Collect checked IDs, commit validated next-round preferences, and refresh the summary.
 func _on_rules_confirmed() -> void:
 	var selected: Array[StringName] = []
 	for id in rule_checkboxes:

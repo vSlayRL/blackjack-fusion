@@ -1,3 +1,5 @@
+## One playing card: identity, Blackjack value, and readable names.
+## Ace adjustment belongs to Hand because its best value depends on the whole hand.
 class_name Card
 extends Resource
 
@@ -25,15 +27,17 @@ enum Rank {
 	ACE = 14
 }
 
-var suit: Suit
-var rank: Rank
+var suit: Suit = Suit.HEARTS
+var rank: Rank = Rank.TWO
 
 
+## Create the requested card; defaults also allow Godot to instantiate this Resource.
 func _init(card_suit: Suit = Suit.HEARTS, card_rank: Rank = Rank.TWO):
 	suit = card_suit
 	rank = card_rank
 
 
+## Return the initial value: Ace 11, face cards 10, numbered cards their rank.
 func get_blackjack_value() -> int:
 	if rank == Rank.ACE:
 		return 11
@@ -44,6 +48,7 @@ func get_blackjack_value() -> int:
 	return int(rank)
 
 
+## Return a readable rank for cards, logs, and UI tooltips.
 func get_rank_name() -> String:
 	match rank:
 		Rank.TWO:
@@ -76,6 +81,7 @@ func get_rank_name() -> String:
 	return "Unknown"
 
 
+## Return the readable suit without exposing any gameplay decisions.
 func get_suit_name() -> String:
 	match suit:
 		Suit.HEARTS:
@@ -90,5 +96,6 @@ func get_suit_name() -> String:
 	return "Unknown"
 
 
+## Combine rank and suit, for example "Ace of Spades".
 func get_card_name() -> String:
 	return get_rank_name() + " of " + get_suit_name()
