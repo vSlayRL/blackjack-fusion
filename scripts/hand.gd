@@ -16,6 +16,13 @@ func clear_hand() -> void:
 	cards.clear()
 
 
+func replace_card(index: int, replacement: Card) -> bool:
+	if index < 0 or index >= cards.size() or replacement == null:
+		return false
+	cards[index] = replacement
+	return true
+
+
 func get_total() -> int:
 	var total := 0
 	var aces := 0

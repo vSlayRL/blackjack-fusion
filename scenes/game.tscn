@@ -1,6 +1,6 @@
-[gd_scene load_steps=2 format=3 uid="uid://bcqfpnlbulwxg"]
+[gd_scene format=3 uid="uid://bcqfpnlbulwxg"]
 
-[ext_resource type="Script" path="res://scripts/ui/game_ui.gd" id="1_game_ui"]
+[ext_resource type="Script" uid="uid://bwj15bun3twc" path="res://scripts/ui/game_ui.gd" id="1_game_ui"]
 
 [node name="Game" type="Control"]
 layout_mode = 3
@@ -19,158 +19,316 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-color = Color(0.035, 0.18, 0.11, 1)
+color = Color(0.035, 0.08, 0.075, 1)
 
-[node name="CenterContainer" type="CenterContainer" parent="."]
+[node name="WindowMargin" type="MarginContainer" parent="."]
+unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_bottom = 20
 
-[node name="GamePanel" type="PanelContainer" parent="CenterContainer"]
-custom_minimum_size = Vector2(720, 560)
-layout_mode = 2
-
-[node name="MarginContainer" type="MarginContainer" parent="CenterContainer/GamePanel"]
-layout_mode = 2
-theme_override_constants/margin_left = 28
-theme_override_constants/margin_top = 24
-theme_override_constants/margin_right = 28
-theme_override_constants/margin_bottom = 24
-
-[node name="MainLayout" type="VBoxContainer" parent="CenterContainer/GamePanel/MarginContainer"]
+[node name="Layout" type="VBoxContainer" parent="WindowMargin"]
 layout_mode = 2
 theme_override_constants/separation = 14
 
-[node name="TitleLabel" type="Label" parent="CenterContainer/GamePanel/MarginContainer/MainLayout"]
+[node name="Header" type="GridContainer" parent="WindowMargin/Layout"]
+unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 30
+theme_override_constants/h_separation = 24
+theme_override_constants/v_separation = 12
+columns = 2
+
+[node name="TitleGroup" type="VBoxContainer" parent="WindowMargin/Layout/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Title" type="Label" parent="WindowMargin/Layout/Header/TitleGroup"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
 text = "BLACKJACK FUSION"
-horizontal_alignment = 1
 
-[node name="SubtitleLabel" type="Label" parent="CenterContainer/GamePanel/MarginContainer/MainLayout"]
+[node name="Subtitle" type="Label" parent="WindowMargin/Layout/Header/TitleGroup"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.72, 0.72, 0.72, 1)
-text = "Logic Iteration - Basic Blackjack"
-horizontal_alignment = 1
+theme_override_colors/font_color = Color(0.66, 0.77, 0.73, 1)
+theme_override_font_sizes/font_size = 14
+text = "CLASSIC BLACKJACK  /  THE TABLE IS YOURS"
 
-[node name="HeaderRow" type="HBoxContainer" parent="CenterContainer/GamePanel/MarginContainer/MainLayout"]
+[node name="Stats" type="HBoxContainer" parent="WindowMargin/Layout/Header"]
 layout_mode = 2
-alignment = 1
-theme_override_constants/separation = 28
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+alignment = 2
 
-[node name="MoneyLabel" type="Label" parent="CenterContainer/GamePanel/MarginContainer/MainLayout/HeaderRow"]
+[node name="MoneyGroup" type="VBoxContainer" parent="WindowMargin/Layout/Header/Stats"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "Money: $100.00"
+size_flags_horizontal = 3
 
-[node name="CurrentBetLabel" type="Label" parent="CenterContainer/GamePanel/MarginContainer/MainLayout/HeaderRow"]
+[node name="Caption" type="Label" parent="WindowMargin/Layout/Header/Stats/MoneyGroup"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "Current Bet: $0.00"
+theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(0.66, 0.77, 0.73, 1)
+text = "BANKROLL"
 
-[node name="Divider1" type="HSeparator" parent="CenterContainer/GamePanel/MarginContainer/MainLayout"]
+[node name="MoneyLabel" type="Label" parent="WindowMargin/Layout/Header/Stats/MoneyGroup"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "$100.00"
+
+[node name="RoundDeltaLabel" type="Label" parent="WindowMargin/Layout/Header/Stats/MoneyGroup"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = ""
+tooltip_text = "This round's net gain or loss after all wagers and bonuses. Clears on the next deal."
+
+[node name="BetGroup" type="VBoxContainer" parent="WindowMargin/Layout/Header/Stats"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Caption" type="Label" parent="WindowMargin/Layout/Header/Stats/BetGroup"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(0.66, 0.77, 0.73, 1)
+text = "ON THE TABLE"
+
+[node name="CurrentBetLabel" type="Label" parent="WindowMargin/Layout/Header/Stats/BetGroup"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "$0.00"
+
+[node name="RulesButton" type="Button" parent="WindowMargin/Layout/Header/Stats"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(92, 46)
+layout_mode = 2
+size_flags_vertical = 4
+text = "Rules"
+tooltip_text = "Choose special rules before dealing. Settings lock during the round."
+
+[node name="RestartButton" type="Button" parent="WindowMargin/Layout/Header/Stats"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(112, 46)
+layout_mode = 2
+size_flags_vertical = 4
+text = "Restart"
+tooltip_text = "Start a fresh session with $100."
+
+[node name="TableScroll" type="ScrollContainer" parent="WindowMargin/Layout"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="Board" type="VBoxContainer" parent="WindowMargin/Layout/TableScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 14
+
+[node name="DealerPanel" type="PanelContainer" parent="WindowMargin/Layout/TableScroll/Board"]
+unique_name_in_owner = true
 layout_mode = 2
 
-[node name="DealerSection" type="VBoxContainer" parent="CenterContainer/GamePanel/MarginContainer/MainLayout"]
+[node name="DealerLayout" type="HBoxContainer" parent="WindowMargin/Layout/TableScroll/Board/DealerPanel"]
 layout_mode = 2
-theme_override_constants/separation = 4
+theme_override_constants/separation = 12
 
-[node name="DealerTitleLabel" type="Label" parent="CenterContainer/GamePanel/MarginContainer/MainLayout/DealerSection"]
+[node name="Heading" type="VBoxContainer" parent="WindowMargin/Layout/TableScroll/Board/DealerPanel/DealerLayout"]
+custom_minimum_size = Vector2(160, 0)
 layout_mode = 2
+size_flags_vertical = 4
+
+[node name="Title" type="Label" parent="WindowMargin/Layout/TableScroll/Board/DealerPanel/DealerLayout/Heading"]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 20
 text = "DEALER"
-horizontal_alignment = 1
 
-[node name="DealerCardsLabel" type="Label" parent="CenterContainer/GamePanel/MarginContainer/MainLayout/DealerSection"]
-custom_minimum_size = Vector2(0, 52)
+[node name="DealerTotalLabel" type="Label" parent="WindowMargin/Layout/TableScroll/Board/DealerPanel/DealerLayout/Heading"]
+unique_name_in_owner = true
 layout_mode = 2
-text = "No cards"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="DealerTotalLabel" type="Label" parent="CenterContainer/GamePanel/MarginContainer/MainLayout/DealerSection"]
-layout_mode = 2
+theme_override_font_sizes/font_size = 24
 text = "Total: ?"
-horizontal_alignment = 1
 
-[node name="StatusLabel" type="Label" parent="CenterContainer/GamePanel/MarginContainer/MainLayout"]
-custom_minimum_size = Vector2(0, 46)
+[node name="DealerCards" type="HFlowContainer" parent="WindowMargin/Layout/TableScroll/Board/DealerPanel/DealerLayout"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 10
+
+[node name="PlayerHeading" type="HBoxContainer" parent="WindowMargin/Layout/TableScroll/Board"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="WindowMargin/Layout/TableScroll/Board/PlayerHeading"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 20
+text = "YOUR HANDS"
+
+[node name="PlayerTotalLabel" type="Label" parent="WindowMargin/Layout/TableScroll/Board/PlayerHeading"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
-text = "Place a bet to begin."
-horizontal_alignment = 1
-vertical_alignment = 1
-autowrap_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.76, 0.43, 1)
+text = "Place a bet to begin"
 
-[node name="PlayerSection" type="VBoxContainer" parent="CenterContainer/GamePanel/MarginContainer/MainLayout"]
+[node name="HandsGrid" type="GridContainer" parent="WindowMargin/Layout/TableScroll/Board"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/h_separation = 14
+theme_override_constants/v_separation = 14
+columns = 1
+
+[node name="StatusPanel" type="PanelContainer" parent="WindowMargin/Layout"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="StatusContent" type="VBoxContainer" parent="WindowMargin/Layout/StatusPanel"]
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="PlayerTitleLabel" type="Label" parent="CenterContainer/GamePanel/MarginContainer/MainLayout/PlayerSection"]
+[node name="ActiveRulesLabel" type="Label" parent="WindowMargin/Layout/StatusPanel/StatusContent"]
+unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 20
-text = "PLAYER"
-horizontal_alignment = 1
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.91, 0.76, 0.43, 1)
+text = "CLASSIC — special rules off"
+autowrap_mode = 2
 
-[node name="PlayerCardsLabel" type="Label" parent="CenterContainer/GamePanel/MarginContainer/MainLayout/PlayerSection"]
-custom_minimum_size = Vector2(0, 52)
+[node name="StatusLabel" type="Label" parent="WindowMargin/Layout/StatusPanel/StatusContent"]
+unique_name_in_owner = true
 layout_mode = 2
-text = "No cards"
-horizontal_alignment = 1
-vertical_alignment = 1
+theme_override_font_sizes/font_size = 18
+text = "Choose your wager, then deal the cards."
+autowrap_mode = 2
 
-[node name="PlayerTotalLabel" type="Label" parent="CenterContainer/GamePanel/MarginContainer/MainLayout/PlayerSection"]
+[node name="ControlsGrid" type="GridContainer" parent="WindowMargin/Layout"]
+unique_name_in_owner = true
 layout_mode = 2
-text = "Total: 0"
-horizontal_alignment = 1
+theme_override_constants/h_separation = 24
+theme_override_constants/v_separation = 12
+columns = 1
 
-[node name="Divider2" type="HSeparator" parent="CenterContainer/GamePanel/MarginContainer/MainLayout"]
+[node name="BetRow" type="HBoxContainer" parent="WindowMargin/Layout/ControlsGrid"]
+unique_name_in_owner = true
 layout_mode = 2
-
-[node name="BetRow" type="HBoxContainer" parent="CenterContainer/GamePanel/MarginContainer/MainLayout"]
-layout_mode = 2
-alignment = 1
+size_flags_horizontal = 3
 theme_override_constants/separation = 10
 
-[node name="BetLabel" type="Label" parent="CenterContainer/GamePanel/MarginContainer/MainLayout/BetRow"]
+[node name="BetLabel" type="Label" parent="WindowMargin/Layout/ControlsGrid/BetRow"]
 layout_mode = 2
-text = "Bet Amount:"
+text = "Wager"
 
-[node name="BetSpinBox" type="SpinBox" parent="CenterContainer/GamePanel/MarginContainer/MainLayout/BetRow"]
-custom_minimum_size = Vector2(150, 0)
+[node name="BetSpinBox" type="SpinBox" parent="WindowMargin/Layout/ControlsGrid/BetRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(150, 48)
 layout_mode = 2
+size_flags_horizontal = 3
 min_value = 1.0
-max_value = 100.0
-step = 1.0
 value = 10.0
 prefix = "$"
 
-[node name="DealButton" type="Button" parent="CenterContainer/GamePanel/MarginContainer/MainLayout/BetRow"]
-custom_minimum_size = Vector2(140, 42)
+[node name="DealButton" type="Button" parent="WindowMargin/Layout/ControlsGrid/BetRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(148, 48)
 layout_mode = 2
 text = "Deal Cards"
 
-[node name="ActionRow" type="HBoxContainer" parent="CenterContainer/GamePanel/MarginContainer/MainLayout"]
+[node name="ActionsGrid" type="GridContainer" parent="WindowMargin/Layout/ControlsGrid"]
+unique_name_in_owner = true
 layout_mode = 2
-alignment = 1
-theme_override_constants/separation = 10
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 10
+columns = 4
 
-[node name="HitButton" type="Button" parent="CenterContainer/GamePanel/MarginContainer/MainLayout/ActionRow"]
-custom_minimum_size = Vector2(130, 44)
+[node name="MysteryActions" type="GridContainer" parent="WindowMargin/Layout/ControlsGrid"]
+unique_name_in_owner = true
+visible = false
 layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 10
+columns = 2
+
+[node name="KeepMysteryButton" type="Button" parent="WindowMargin/Layout/ControlsGrid/MysteryActions"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+disabled = true
+text = "Keep Card"
+tooltip_text = "Keep and reveal your hidden starting card."
+
+[node name="ReplaceMysteryButton" type="Button" parent="WindowMargin/Layout/ControlsGrid/MysteryActions"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+disabled = true
+text = "Replace Card"
+tooltip_text = "Discard the hidden card for this round and draw one revealed replacement."
+
+[node name="HitButton" type="Button" parent="WindowMargin/Layout/ControlsGrid/ActionsGrid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 48)
+layout_mode = 2
+size_flags_horizontal = 3
 disabled = true
 text = "Hit"
 
-[node name="StandButton" type="Button" parent="CenterContainer/GamePanel/MarginContainer/MainLayout/ActionRow"]
-custom_minimum_size = Vector2(130, 44)
+[node name="StandButton" type="Button" parent="WindowMargin/Layout/ControlsGrid/ActionsGrid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 48)
 layout_mode = 2
+size_flags_horizontal = 3
 disabled = true
 text = "Stand"
 
-[node name="RestartButton" type="Button" parent="CenterContainer/GamePanel/MarginContainer/MainLayout/ActionRow"]
-custom_minimum_size = Vector2(130, 44)
+[node name="DoubleButton" type="Button" parent="WindowMargin/Layout/ControlsGrid/ActionsGrid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 48)
 layout_mode = 2
-text = "Restart Game"
+size_flags_horizontal = 3
+disabled = true
+text = "Double"
+tooltip_text = "Match your wager, draw exactly one card, then finish this hand."
+
+[node name="SplitButton" type="Button" parent="WindowMargin/Layout/ControlsGrid/ActionsGrid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+disabled = true
+text = "Split"
+tooltip_text = "Split two equal-value cards into separately wagered hands. Up to four hands."
+
+[node name="RerollButton" type="Button" parent="WindowMargin/Layout/ControlsGrid/ActionsGrid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+visible = false
+disabled = true
+text = "Reroll"
+tooltip_text = "Once per round: select one card in your active hand to replace."
+
+[node name="SecondChanceButton" type="Button" parent="WindowMargin/Layout/ControlsGrid/ActionsGrid"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+visible = false
+disabled = true
+text = "Second Chance"
+tooltip_text = "Once per round: remove the card that caused a bust."

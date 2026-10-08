@@ -21,8 +21,9 @@ window/size/viewport_width=960
 window/size/viewport_height=640
 window/size/window_width_override=960
 window/size/window_height_override=640
-window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
+window/size/min_width=640
+window/size/min_height=560
 
 [physics]
 

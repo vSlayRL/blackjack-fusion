@@ -4,9 +4,27 @@ extends RefCounted
 
 var player_name: String
 var money: float
-var bet: float = 0.0
-var hand: Hand = Hand.new()
-var is_standing: bool = false
+var hands: Array[PlayerHand] = []
+var active_hand_index: int = 0
+
+# Preserve the original API: these properties refer to the active hand.
+var bet: float:
+	get:
+		return hands[active_hand_index].bet
+	set(value):
+		hands[active_hand_index].bet = value
+
+var hand: Hand:
+	get:
+		return hands[active_hand_index].hand
+	set(value):
+		hands[active_hand_index].hand = value
+
+var is_standing: bool:
+	get:
+		return hands[active_hand_index].is_standing
+	set(value):
+		hands[active_hand_index].is_standing = value
 
 
 func _init(
@@ -15,19 +33,20 @@ func _init(
 ) -> void:
 	player_name = p_name
 	money = starting_money
+	hands.append(PlayerHand.new())
 
 
 # Returns false if the bet is invalid,
 # so the game controller can reject it.
 func place_bet(amount: float) -> bool:
-	if amount <= 0.0:
+	if not is_finite(amount) or amount <= 0.0:
 		return false
 	
 	if amount > money:
 		return false
 	
 	# Prevent multiple active bets.
-	if bet > 0.0:
+	if total_bet() > 0.0:
 		return false
 	
 	bet = amount
@@ -63,15 +82,38 @@ func lose() -> void:
 	bet = 0.0
 
 
-func reset_for_round() -> void:
+func settle_return(total_return: float) -> void:
+	# A special rule supplies the complete return, including the original bet.
+	money += total_return
 	bet = 0.0
-	is_standing = false
-	hand.clear_hand()
+
+
+func reset_for_round() -> void:
+	# Return any outstanding wagers before clearing their state.
+	money += total_bet()
+	hands = [PlayerHand.new()]
+	active_hand_index = 0
 
 
 func reset_hand() -> void:
-	is_standing = false
-	hand.clear_hand()
+	var wager := total_bet()
+	hands = [PlayerHand.new(wager)]
+	active_hand_index = 0
+
+
+func total_bet() -> float:
+	var total: float = 0.0
+	for played_hand in hands:
+		total += played_hand.bet
+	return total
+
+
+func add_to_bet(amount: float) -> bool:
+	if not is_finite(amount) or amount <= 0.0 or amount > money:
+		return false
+	money -= amount
+	bet += amount
+	return true
 
 
 # Compatibility functions for our current BlackjackGame.
@@ -89,4 +131,4 @@ func lose_bet() -> void:
 
 
 func can_bet(amount: float) -> bool:
-	return amount > 0.0 and amount <= money and bet <= 0.0
+	return is_finite(amount) and amount > 0.0 and amount <= money and total_bet() <= 0.0
