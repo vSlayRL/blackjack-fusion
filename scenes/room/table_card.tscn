@@ -1,0 +1,82 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/room/table_card.gd" id="1_card"]
+
+[sub_resource type="StandardMaterial3D" id="BackMaterial"]
+albedo_color = Color(0.025, 0.15, 0.24, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="FaceMaterial"]
+shading_mode = 0
+albedo_color = Color(0.94, 0.96, 0.93, 1)
+
+[sub_resource type="StandardMaterial3D" id="GoldMaterial"]
+shading_mode = 0
+albedo_color = Color(0.96, 0.76, 0.3, 1)
+
+[sub_resource type="BoxMesh" id="CardMesh"]
+size = Vector3(0.54, 0.018, 0.78)
+
+[sub_resource type="BoxMesh" id="FaceMesh"]
+size = Vector3(0.522, 0.002, 0.762)
+
+[sub_resource type="BoxMesh" id="OutlineMesh"]
+size = Vector3(0.59, 0.009, 0.83)
+
+[sub_resource type="BoxShape3D" id="PickShape"]
+size = Vector3(0.54, 0.032, 0.78)
+
+[node name="TableCard" type="Node3D"]
+script = ExtResource("1_card")
+
+[node name="CardBody" type="MeshInstance3D" parent="."]
+mesh = SubResource("CardMesh")
+material_override = SubResource("BackMaterial")
+cast_shadow = 0
+
+[node name="Face" type="Node3D" parent="."]
+
+[node name="Surface" type="MeshInstance3D" parent="Face"]
+position = Vector3(0, 0.010, 0)
+mesh = SubResource("FaceMesh")
+material_override = SubResource("FaceMaterial")
+cast_shadow = 0
+
+[node name="Rank" type="Label3D" parent="Face"]
+position = Vector3(-0.10, 0.016, -0.26)
+rotation_degrees = Vector3(-90, 0, 0)
+pixel_size = 0.0036
+font_size = 36
+outline_size = 0
+text = ""
+
+[node name="Suit" type="Label3D" parent="Face"]
+position = Vector3(0.025, 0.016, 0.075)
+rotation_degrees = Vector3(-90, 0, 0)
+pixel_size = 0.004
+font_size = 72
+outline_size = 0
+text = ""
+
+[node name="BackMark" type="Label3D" parent="."]
+position = Vector3(0, -0.016, 0)
+rotation_degrees = Vector3(90, 180, 0)
+pixel_size = 0.0038
+font_size = 48
+outline_size = 0
+modulate = Color(0.3, 0.8, 0.91, 1)
+text = "BF"
+
+[node name="SelectionOutline" type="MeshInstance3D" parent="."]
+visible = false
+position = Vector3(0, -0.002, 0)
+mesh = SubResource("OutlineMesh")
+material_override = SubResource("GoldMaterial")
+cast_shadow = 0
+
+[node name="PickBody" type="StaticBody3D" parent="."]
+collision_layer = 0
+collision_mask = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="PickBody"]
+shape = SubResource("PickShape")

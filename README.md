@@ -4,6 +4,7 @@
 
 - [Overview](#overview)
 - [Run the Project](#run-the-project)
+- [Playable 3D Room](#playable-3d-room)
 - [Project Structure](#current-project-structure)
 - [Script Responsibilities](#script-responsibilities)
 - [Playable Interface](#temporary-playable-interface)
@@ -15,7 +16,7 @@
 
 ## Overview
 
-Blackjack Fusion is a Godot 4.7 project that is being built in iterations. The long-term goal is a 3D social Blackjack game. The current iteration intentionally focuses on a small, dependable Blackjack rules engine and a temporary 2D interface for proving that the game is playable.
+Blackjack Fusion is a Godot 4.7 project that is being built in iterations. The long-term goal is a 3D social Blackjack game. The project currently has a tested Blackjack rules engine, a playable 2D interface, and a playable 3D space lounge that uses the same Blackjack engine.
 
 Current scope:
 
@@ -40,7 +41,9 @@ Current scope:
 * Pre-round rule settings: Off, Always Active, or Random
 * A modular special-rule registry and gameplay hooks
 * No multiplayer yet
-* No 3D presentation yet
+* A playable 3D space lounge with table seating, physical cards, walking controls, and a planet outside the window
+* A physical session console with round limits, starting bankroll, Classic/All Selected/Random modes, and random rules per round
+* Finite 3D sessions, a round counter, locked settings, and final balance/net results
 
 ---
 
@@ -70,6 +73,93 @@ Select that scene and press **F6** to run the existing logic and UI checks. The 
 
 ---
 
+## Playable 3D Room
+
+Open `scenes/room/space_lounge.tscn` and press **F6**. **F5** continues to launch the existing 2D Blackjack interface.
+
+### Walking and interacting
+
+- Click inside the window to capture the mouse; use **WASD** to walk and the **mouse** to look.
+- Hold **Shift** to sprint. Press **Space** for a short spacey jump: rise, briefly glide near the peak, then fall. Jumping requires ground contact and is disabled while seated or using the console; holding Space does not repeat jumps. You can jump onto the table.
+- Press **Escape** to release the cursor; click to resume.
+- Press **R** while walking to reset to the entry viewpoint.
+- **F** picks up the nearby toy you are aiming at; **F** again drops it. The held toy follows your view, still collides with the room, and resumes floating when dropped. One toy can be held at a time, while walking or seated. Changing stations or resetting your walking view drops it.
+- **Click/E** pushes a nearby toy. You can follow drifting toys around the room and push them again; walking into one also nudges it.
+- Approach the front chair, look toward the table, and press **E** to sit.
+- Approach the lit console beside the window, look at its screen, and press **E** to set up a session. Choose rounds, starting money, and rules, then select **Start Session** before dealing.
+
+### Window size and fullscreen
+
+The room renders across the current window, with the balance/results anchored at the top and gameplay controls at the bottom. Resizing preserves the round and your camera direction. The layout supports small windows, fullscreen, and wide aspect ratios.
+
+Press **F11** or **Alt+Enter** to toggle fullscreen in a standalone game window. The table's **F11** button does the same thing. Toggling back restores the previous window or maximized mode without recreating the game. Both the 2D interface and 3D room share these shortcuts.
+
+When running from Godot, open the dropdown on the **Game** bar:
+
+- Choose **Stretch to Fit** to make an embedded preview use the available space. **Fixed Size** deliberately keeps the game at its initial resolution.
+- For true fullscreen, turn off **Embed Game on Next Play** and run again. Godot does not support game-controlled fullscreen while embedding is enabled; the table's F11 button is disabled in that mode.
+
+### Playing at the table
+
+Seating uses a raised perspective view from the chair and releases the cursor for gameplay. First start a session at the side console; then enter a wager and choose **Deal Cards**. Hit, Stand, Double, Split, and all five special rules use the same tested engine as the 2D interface. Physical cards animate onto the table and flip when revealed. Dealer and Mystery Card concealment also applies to rank labels, totals, and summary tooltips.
+
+You can look anywhere in the room while a round is in progress:
+
+- **Hold right mouse** and move the mouse to look around; release it to click gameplay controls or cards.
+- Press **C** or choose **Look at Cards** to return to the card-facing view.
+- Use the **mouse wheel over the room** to zoom in or out. Gameplay actions and window resizing preserve your chosen view.
+- **F** grabs/drops a nearby toy, using your cursor or the center dot while looking. Hold right mouse to move it around with your view.
+- **Click** a nearby floating die, token, or orb to push it in your viewing direction. The orb also changes its glow. **E** performs the hovered action, using the center dot while looking. All toys drift freely in zero gravity and bounce off the room, furniture, and one another. They have no spring or return-to-start behavior. Toy interactions never affect chips, cards, rule uses, or the deck.
+- **Escape** first releases mouse-look. Losing window focus also releases the mouse.
+
+Action controls stay docked to the bottom of the window independently of hand text, including after repeated Hits. The active rules remain beside the buttons; their tooltip provides the full rule descriptions.
+
+The screen overlay shows balance, green/red round net results, session progress, current rules, and interactive controls. Dealer and player totals, hand stakes, active/finished markers, and Lucky 9 status appear once on tilted, high-contrast displays attached to the table. The dealer display shows only the visible card plus **?** until reveal, then shows the full total. Mystery Card also keeps the player total at **?** until the opening choice. Up to four split hands appear on the tabletop. Choose **Reroll** and click a gold-outlined card in your active hand, or use the card dropdown and **Replace Selected**. **Cancel** or **Escape** exits selection without spending the allowance.
+
+After a deal finishes, choose **Leave Table**, press **E** away from a toy, or press **Escape** with mouse-look released to resume exploration. Leaving and reseating retain the same session, money, round progress, and rule preferences. Leaving is locked while a wager is active. Accepted new deals clear the previous round's net result.
+
+### Session settings and results
+
+The side console opens **Session Settings**. Defaults are **10 rounds** and **$100**. Choose **1–100 rounds** and **$1–$100,000** starting money. Draft changes are committed together by **Start Session**; **Cancel**, closing the window, or **Escape** discards the draft. The complete form scrolls at small window sizes, with the Start/Cancel buttons remaining accessible.
+
+| Mode | Behavior |
+| --- | --- |
+| Classic | Standard Blackjack with special rules off. |
+| All Selected | Activate every checked rule for each round. |
+| Random | Choose the requested number of distinct checked rules for each round. |
+
+For Random, check at least one rule and choose the number per round, up to the checked pool size. Each round draws its own combination; the same combination can occur again. Choices stay fixed for the whole deal. Session length, starting money, rule mode, checked pool, and random count lock until the session ends. The console can still show those settings between deals, with editing disabled.
+
+The table displays **Round X of Y**. One completed deal consumes one round, including all split hands, the Mystery Card opening choice, Reroll, Second Chance, and Double Target settlement. Invalid bets do not count. Interrupted deals that refund every wager do not count and can be retried. Opening Blackjacks, wins, losses, and pushes each count once; refreshing the UI or leaving/reseating never counts another round.
+
+After the final deal settles, further deals are blocked and **Session Results** shows the actual completed rounds, starting money, final balance, and total net profit/loss (green/red). If less than the $1 minimum bet remains, the session ends early without refilling money. Choose **Back to Room** to keep exploring and playing with toys. You can close the results window and reopen it with **View Session Results** at the table.
+
+**New Session** replaces the 3D Restart button and is available only after the session ends. It opens setup directly, retaining the last length, starting money, and rule choices as defaults. The finished console also provides **New Session**. Choose **Start Session** to begin another session, or Cancel to continue exploring before deciding. Session progress lasts while the room scene is running; disk saves and multiplayer are future work. Multiplayer will give everyone equal starting money, host-controlled settings, and a winner based on final bankroll; this build reports a single player's results.
+
+The **2D interface** remains the original standalone Blackjack demo, with its existing Restart and between-round rule settings. Finite session controls are currently part of the **3D room**.
+
+### Room files and checks
+
+The room includes editable Godot primitive models with no external asset dependencies. `Architecture`, `Furniture`, `Lighting`, `SpaceBackdrop`, `Explorer`, and `HUD` organize the scene. The table and chair are reusable scenes, and the planet uses a small procedural shader.
+
+- `scenes/room/space_lounge.tscn`: room layout, cameras, interactions, scenery, and overlay instance.
+- `scenes/room/blackjack_table.tscn` and `lounge_chair.tscn`: reusable furniture.
+- `scenes/room/room_explorer.tscn` and `scripts/room/room_explorer.gd`: collision body, walking/sprinting, short apex-glide jumps, and mouse look. The exported speeds and gravity values can be tuned in the Inspector.
+- `scenes/room/table_card.tscn` and `scripts/room/table_card.gd`: reusable physical card, hidden back, animation, and selection outline.
+- `scenes/room/table_hud.tscn` and `scripts/room/table_hud.gd`: compact overlay inheriting existing 2D action/settings handlers.
+- `scripts/room/space_lounge.gd`: seating/console state, shared-game synchronization, card layout, raised seated free look, tabletop displays, pickup/drop ownership, and ray picking. The exported `seated_eye_height` and `seated_eye_distance` values let you adjust the seat view in the Inspector.
+- `scripts/room/lounge_prop.gd`: primitive toy geometry, free zero-gravity physics, bouncing collisions, physics-based holding, and independent interactions.
+- `scripts/blackjack_session.gd`: finite-session lifecycle, configured starting bankroll, accepted-deal tracking, end conditions, and retained setup defaults.
+- `scenes/room/session_tests.tscn` and `scripts/room/session_tests.gd`: complete session stories through real Deal clicks, split/rule actions, final results, bankruptcy, refunds, and New Session.
+- `scripts/display_settings.gd`: shared F11/Alt+Enter fullscreen controls with embedded-preview detection.
+- `assets/room/planet.gdshader`: planet surface shading.
+
+Open `scenes/room/room_tests.tscn` and press **F6** for room integration checks. These cover session console draft/Start/Cancel and locked settings, real viewport E/click dispatch, seating/session persistence, active-round locks, hidden-card secrecy, 3D Reroll picking, special payouts, four-hand Split/Double, repeated real GUI Hit clicks, seated look/focus/focus-loss behavior, toy clicks/E without gameplay changes, free drift, wall/floor/ceiling bounces, toy-to-toy momentum transfer, walking toy interaction, F pickup/drop/carry/release, held-wall collision, station/reset release, sprint distance, jump height/glide/landing, grounded-only jumping, no automatic repeat jumps, tabletop landing, concealed tabletop totals, and HUD bounds from 640×560 through 2560×1080. Successful runs end with **ALL 3D ROOM TESTS PASSED**. Sprint/jump and walking pickup checks require a rendered game window; headless runs explicitly skip those cursor-capture checks. Open `scenes/room/session_tests.tscn` and press **F6** for session checks; successful runs end with **ALL SESSION TESTS PASSED**. The original `scenes/tests.tscn` still runs all engine and 2D UI checks.
+
+The current 3D version is single-player. Avatars, a dealer character, sound, and networking remain future work.
+
+---
+
 ## Current Project Structure
 
 ```text
@@ -80,9 +170,18 @@ blackjack-fusion/
 ├── scenes/
 │   ├── main.tscn
 │   ├── game.tscn
-│   └── tests.tscn
+│   ├── tests.tscn
+│   └── room/
+│       ├── space_lounge.tscn
+│       ├── blackjack_table.tscn
+│       ├── lounge_chair.tscn
+│       ├── room_explorer.tscn
+│       ├── table_card.tscn
+│       ├── table_hud.tscn
+│       └── room_tests.tscn
 └── scripts/
     ├── blackjack_game.gd
+    ├── display_settings.gd
     ├── card.gd
     ├── dealer.gd
     ├── deck.gd
@@ -90,6 +189,13 @@ blackjack-fusion/
     ├── player.gd
     ├── player_hand.gd
     ├── tests.gd
+    ├── room/
+    │   ├── room_explorer.gd
+    │   ├── space_lounge.gd
+    │   ├── lounge_prop.gd
+    │   ├── table_card.gd
+    │   ├── table_hud.gd
+    │   └── room_tests.gd
     ├── rules/
     │   ├── special_rule.gd
     │   ├── rule_manager.gd
@@ -105,6 +211,9 @@ blackjack-fusion/
 ---
 
 ## Script Responsibilities
+
+### `display_settings.gd`
+Handles fullscreen shortcuts for both interfaces, preserving the active game and prior window mode.
 
 ### `card.gd`
 Represents one playing card. Stores rank and suit and provides the card's Blackjack value and display name.
@@ -337,7 +446,7 @@ Game State Changes
 Text UI Refreshes
 ```
 
-Future 3D version:
+Current 3D presentation:
 
 ```text
 3D Table Interaction
@@ -349,7 +458,7 @@ Game State Changes
 Card Models / Animations / HUD Refresh
 ```
 
-This lets the team replace the temporary interface later while keeping the tested game engine.
+The 3D HUD inherits the existing action/settings handlers and mirrors their engine state into card meshes. `SpaceLounge` handles seating, console interactions, and camera framing. This keeps presentation changes separate from tested rule and payout decisions.
 
 ---
 
@@ -357,17 +466,16 @@ This lets the team replace the temporary interface later while keeping the teste
 
 Future iterations may add:
 
-* 3D blackjack table
-* 3D card models and card animations
-* Player avatars/seating
+* More detailed furniture and card presentation
+* Player avatars and seating animations
 * Multiplayer/networking
 * Sound and visual feedback
 * Menus and game settings
 
-Those features are intentionally outside the current logic-focused iteration.
+The 3D table, finite sessions, session console, and room toys are playable. Avatars, a dealer character, sound, and networking remain future work.
 
 ---
 
 ## Use of Generative AI
 
-Generative AI supported this project by helping draft gameplay functions and test code. We guided the implementation by defining requirements, clarifying rule interactions, reviewing suggestions, and testing the game. AI-generated code was evaluated and refined through this process to ensure it matched the project's intended behavior.
+Generative AI supported this project by helping draft gameplay functions and test code. I guided the implementation by defining requirements, clarifying rule interactions, reviewing suggestions, and testing the game. AI-generated code was evaluated and refined through this process to ensure it matched the project's intended behavior.

@@ -1,0 +1,137 @@
+[gd_scene load_steps=14 format=3]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1"]
+albedo_color = Color(0.12, 0.17, 0.2, 1)
+metallic = 0.55
+roughness = 0.75
+
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2"]
+albedo_color = Color(0.04, 0.27, 0.28, 1)
+metallic = 0
+roughness = 0.75
+
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_3"]
+albedo_color = Color(0.12, 0.75, 0.8, 1)
+metallic = 0
+roughness = 0.75
+emission_enabled = true
+emission = Color(0.06, 0.3, 0.4, 1)
+emission_energy_multiplier = 1.0
+
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_4"]
+top_radius = 0.38
+bottom_radius = 0.38
+height = 0.14
+radial_segments = 48
+
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_5"]
+top_radius = 0.075
+bottom_radius = 0.075
+height = 0.42
+radial_segments = 48
+
+
+[sub_resource type="BoxMesh" id="BoxMesh_6"]
+size = Vector3(0.66, 0.15, 0.65)
+
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_7"]
+size = Vector3(0.66, 0.15, 0.65)
+
+
+[sub_resource type="BoxMesh" id="BoxMesh_8"]
+size = Vector3(0.66, 0.75, 0.12)
+
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_9"]
+size = Vector3(0.66, 0.75, 0.12)
+
+
+[sub_resource type="BoxMesh" id="BoxMesh_10"]
+size = Vector3(0.54, 0.59, 0.045)
+
+
+[sub_resource type="BoxMesh" id="BoxMesh_11"]
+size = Vector3(0.44, 0.025, 0.012)
+
+
+[sub_resource type="BoxMesh" id="BoxMesh_12"]
+size = Vector3(0.075, 0.075, 0.53)
+
+
+[sub_resource type="BoxMesh" id="BoxMesh_13"]
+size = Vector3(0.075, 0.075, 0.53)
+
+
+[node name="LoungeChair" type="Node3D"]
+
+
+
+[node name="Base" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.07, 0)
+scale = Vector3(1, 1, 1)
+mesh = SubResource("CylinderMesh_4")
+material_override = SubResource("StandardMaterial3D_1")
+
+
+[node name="Stem" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.29, 0)
+scale = Vector3(1, 1, 1)
+mesh = SubResource("CylinderMesh_5")
+material_override = SubResource("StandardMaterial3D_1")
+
+
+[node name="Seat" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.53, 0)
+mesh = SubResource("BoxMesh_6")
+material_override = SubResource("StandardMaterial3D_2")
+
+
+[node name="SeatBody" type="StaticBody3D" parent="."]
+position = Vector3(0, 0.53, 0)
+
+
+[node name="Collision" type="CollisionShape3D" parent="SeatBody"]
+shape = SubResource("BoxShape3D_7")
+
+
+[node name="Back" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.92, 0.27)
+mesh = SubResource("BoxMesh_8")
+material_override = SubResource("StandardMaterial3D_1")
+
+
+[node name="BackBody" type="StaticBody3D" parent="."]
+position = Vector3(0, 0.92, 0.27)
+
+
+[node name="Collision" type="CollisionShape3D" parent="BackBody"]
+shape = SubResource("BoxShape3D_9")
+
+
+[node name="BackCushion" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.93, 0.196)
+mesh = SubResource("BoxMesh_10")
+material_override = SubResource("StandardMaterial3D_2")
+
+
+[node name="BackAccent" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.25, 0.335)
+mesh = SubResource("BoxMesh_11")
+material_override = SubResource("StandardMaterial3D_3")
+
+
+[node name="ArmL1" type="MeshInstance3D" parent="."]
+position = Vector3(-0.36, 0.73, 0)
+mesh = SubResource("BoxMesh_12")
+material_override = SubResource("StandardMaterial3D_1")
+
+
+[node name="Arm1" type="MeshInstance3D" parent="."]
+position = Vector3(0.36, 0.73, 0)
+mesh = SubResource("BoxMesh_13")
+material_override = SubResource("StandardMaterial3D_1")

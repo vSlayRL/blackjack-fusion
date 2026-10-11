@@ -1,0 +1,507 @@
+[gd_scene load_steps=39 format=3]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1"]
+albedo_color = Color(0.12, 0.17, 0.2, 1)
+metallic = 0.55
+roughness = 0.75
+
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2"]
+albedo_color = Color(0.025, 0.21, 0.18, 1)
+metallic = 0
+roughness = 0.75
+
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_3"]
+albedo_color = Color(0.11, 0.75, 0.8, 1)
+metallic = 0
+roughness = 0.75
+emission_enabled = true
+emission = Color(0.08, 0.4, 0.5, 1)
+emission_energy_multiplier = 1.0
+
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4"]
+albedo_color = Color(0.85, 0.59, 0.25, 1)
+metallic = 0.5
+roughness = 0.75
+
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_5"]
+albedo_color = Color(0.75, 0.21, 0.22, 1)
+metallic = 0
+roughness = 0.75
+
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6"]
+albedo_color = Color(0.85, 0.9, 0.87, 1)
+metallic = 0
+roughness = 0.75
+
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_7"]
+top_radius = 0.85
+bottom_radius = 0.85
+height = 0.16
+radial_segments = 48
+
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_8"]
+top_radius = 0.38
+bottom_radius = 0.38
+height = 0.9
+radial_segments = 48
+
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_9"]
+top_radius = 2.1
+bottom_radius = 2.1
+height = 0.16
+radial_segments = 48
+
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_10"]
+top_radius = 2.09
+bottom_radius = 2.09
+height = 0.025
+radial_segments = 48
+
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_11"]
+top_radius = 2.07
+bottom_radius = 2.07
+height = 0.07
+radial_segments = 48
+
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_12"]
+top_radius = 1.92
+bottom_radius = 1.92
+height = 0.015
+radial_segments = 48
+
+
+[sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_13"]
+points = PackedVector3Array(2.415, 0.87, 0, 2.3686, 0.87, 0.286783, 2.23117, 0.87, 0.562545, 2.008, 0.87, 0.816688, 1.70766, 0.87, 1.03945, 1.3417, 0.87, 1.22226, 0.92418, 0.87, 1.3581, 0.471143, 0.87, 1.44175, 1.47876e-16, 0.87, 1.47, -0.471143, 0.87, 1.44175, -0.92418, 0.87, 1.3581, -1.3417, 0.87, 1.22226, -1.70766, 0.87, 1.03945, -2.008, 0.87, 0.816688, -2.23117, 0.87, 0.562545, -2.3686, 0.87, 0.286783, -2.415, 0.87, 1.80023e-16, -2.3686, 0.87, -0.286783, -2.23117, 0.87, -0.562545, -2.008, 0.87, -0.816688, -1.70766, 0.87, -1.03945, -1.3417, 0.87, -1.22226, -0.92418, 0.87, -1.3581, -0.471143, 0.87, -1.44175, -4.43628e-16, 0.87, -1.47, 0.471143, 0.87, -1.44175, 0.92418, 0.87, -1.3581, 1.3417, 0.87, -1.22226, 1.70766, 0.87, -1.03945, 2.008, 0.87, -0.816688, 2.23117, 0.87, -0.562545, 2.3686, 0.87, -0.286783, 2.415, 1.12, 0, 2.3686, 1.12, 0.286783, 2.23117, 1.12, 0.562545, 2.008, 1.12, 0.816688, 1.70766, 1.12, 1.03945, 1.3417, 1.12, 1.22226, 0.92418, 1.12, 1.3581, 0.471143, 1.12, 1.44175, 1.47876e-16, 1.12, 1.47, -0.471143, 1.12, 1.44175, -0.92418, 1.12, 1.3581, -1.3417, 1.12, 1.22226, -1.70766, 1.12, 1.03945, -2.008, 1.12, 0.816688, -2.23117, 1.12, 0.562545, -2.3686, 1.12, 0.286783, -2.415, 1.12, 1.80023e-16, -2.3686, 1.12, -0.286783, -2.23117, 1.12, -0.562545, -2.008, 1.12, -0.816688, -1.70766, 1.12, -1.03945, -1.3417, 1.12, -1.22226, -0.92418, 1.12, -1.3581, -0.471143, 1.12, -1.44175, -4.43628e-16, 1.12, -1.47, 0.471143, 1.12, -1.44175, 0.92418, 1.12, -1.3581, 1.3417, 1.12, -1.22226, 1.70766, 1.12, -1.03945, 2.008, 1.12, -0.816688, 2.23117, 1.12, -0.562545, 2.3686, 1.12, -0.286783)
+
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_14"]
+radius = 0.85
+height = 0.87
+
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_15"]
+top_radius = 0.062
+bottom_radius = 0.062
+height = 0.023
+radial_segments = 48
+
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_16"]
+top_radius = 0.062
+bottom_radius = 0.062
+height = 0.023
+radial_segments = 48
+
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_17"]
+top_radius = 0.062
+bottom_radius = 0.062
+height = 0.023
+radial_segments = 48
+
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_18"]
+top_radius = 0.062
+bottom_radius = 0.062
+height = 0.023
+radial_segments = 48
+
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_19"]
+top_radius = 0.062
+bottom_radius = 0.062
+height = 0.023
+radial_segments = 48
+
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_20"]
+top_radius = 0.062
+bottom_radius = 0.062
+height = 0.023
+radial_segments = 48
+
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_21"]
+top_radius = 0.062
+bottom_radius = 0.062
+height = 0.023
+radial_segments = 48
+
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_22"]
+top_radius = 0.062
+bottom_radius = 0.062
+height = 0.023
+radial_segments = 48
+
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_23"]
+top_radius = 0.062
+bottom_radius = 0.062
+height = 0.023
+radial_segments = 48
+
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_24"]
+top_radius = 0.062
+bottom_radius = 0.062
+height = 0.023
+radial_segments = 48
+
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_25"]
+top_radius = 0.062
+bottom_radius = 0.062
+height = 0.023
+radial_segments = 48
+
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_26"]
+top_radius = 0.062
+bottom_radius = 0.062
+height = 0.023
+radial_segments = 48
+
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_27"]
+top_radius = 0.062
+bottom_radius = 0.062
+height = 0.023
+radial_segments = 48
+
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_28"]
+top_radius = 0.062
+bottom_radius = 0.062
+height = 0.023
+radial_segments = 48
+
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_29"]
+top_radius = 0.062
+bottom_radius = 0.062
+height = 0.023
+radial_segments = 48
+
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_30"]
+top_radius = 0.062
+bottom_radius = 0.062
+height = 0.023
+radial_segments = 48
+
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_31"]
+top_radius = 0.062
+bottom_radius = 0.062
+height = 0.023
+radial_segments = 48
+
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_32"]
+top_radius = 0.062
+bottom_radius = 0.062
+height = 0.023
+radial_segments = 48
+
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_33"]
+top_radius = 0.062
+bottom_radius = 0.062
+height = 0.023
+radial_segments = 48
+
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_34"]
+top_radius = 0.062
+bottom_radius = 0.062
+height = 0.023
+radial_segments = 48
+
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_35"]
+top_radius = 0.062
+bottom_radius = 0.062
+height = 0.023
+radial_segments = 48
+
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_36"]
+top_radius = 0.062
+bottom_radius = 0.062
+height = 0.023
+radial_segments = 48
+
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_37"]
+top_radius = 0.062
+bottom_radius = 0.062
+height = 0.023
+radial_segments = 48
+
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_38"]
+top_radius = 0.062
+bottom_radius = 0.062
+height = 0.023
+radial_segments = 48
+
+
+[node name="BlackjackTable" type="Node3D"]
+
+
+
+[node name="Foot" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.08, 0)
+scale = Vector3(1.1, 1, 0.7)
+mesh = SubResource("CylinderMesh_7")
+material_override = SubResource("StandardMaterial3D_1")
+
+
+[node name="Pedestal" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.5, 0)
+scale = Vector3(1, 1, 1)
+mesh = SubResource("CylinderMesh_8")
+material_override = SubResource("StandardMaterial3D_1")
+
+
+[node name="LowerRim" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.96, 0)
+scale = Vector3(1.15, 1, 0.7)
+mesh = SubResource("CylinderMesh_9")
+material_override = SubResource("StandardMaterial3D_1")
+
+
+[node name="LightBand" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.036, 0)
+scale = Vector3(1.15, 1, 0.7)
+mesh = SubResource("CylinderMesh_10")
+material_override = SubResource("StandardMaterial3D_3")
+
+
+[node name="CushionedRail" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.064, 0)
+scale = Vector3(1.15, 1, 0.7)
+mesh = SubResource("CylinderMesh_11")
+material_override = SubResource("StandardMaterial3D_1")
+
+
+[node name="PlayingSurface" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.106, 0)
+scale = Vector3(1.15, 1, 0.7)
+mesh = SubResource("CylinderMesh_12")
+material_override = SubResource("StandardMaterial3D_2")
+
+
+[node name="TableTitle" type="Label3D" parent="."]
+position = Vector3(0, 1.118, -0.22)
+rotation_degrees = Vector3(-90, 0, 0)
+text = "BLACKJACK  FUSION"
+font_size = 32
+pixel_size = 0.0045
+modulate = Color(0.69, 0.84, 0.74, 1)
+outline_size = 0
+no_depth_test = false
+
+
+[node name="TableSubtitle" type="Label3D" parent="."]
+position = Vector3(0, 1.118, 0.02)
+rotation_degrees = Vector3(-90, 0, 0)
+text = "ORBITAL LOUNGE  /  TABLE 01"
+font_size = 22
+pixel_size = 0.0035
+modulate = Color(0.59, 0.73, 0.64, 1)
+outline_size = 0
+no_depth_test = false
+
+
+[node name="TableBody" type="StaticBody3D" parent="."]
+
+
+
+[node name="RimCollision" type="CollisionShape3D" parent="TableBody"]
+shape = SubResource("ConvexPolygonShape3D_13")
+
+
+[node name="PedestalCollision" type="CollisionShape3D" parent="TableBody"]
+position = Vector3(0, 0.435, 0)
+shape = SubResource("CylinderShape3D_14")
+
+
+[node name="Chips0_0_0" type="MeshInstance3D" parent="."]
+position = Vector3(-1.25, 1.13, 0.6)
+scale = Vector3(1, 1, 1)
+mesh = SubResource("CylinderMesh_15")
+material_override = SubResource("StandardMaterial3D_5")
+
+
+[node name="Chips0_0_1" type="MeshInstance3D" parent="."]
+position = Vector3(-1.25, 1.157, 0.6)
+scale = Vector3(1, 1, 1)
+mesh = SubResource("CylinderMesh_16")
+material_override = SubResource("StandardMaterial3D_5")
+
+
+[node name="Chips0_0_2" type="MeshInstance3D" parent="."]
+position = Vector3(-1.25, 1.184, 0.6)
+scale = Vector3(1, 1, 1)
+mesh = SubResource("CylinderMesh_17")
+material_override = SubResource("StandardMaterial3D_5")
+
+
+[node name="Chips0_0_3" type="MeshInstance3D" parent="."]
+position = Vector3(-1.25, 1.211, 0.6)
+scale = Vector3(1, 1, 1)
+mesh = SubResource("CylinderMesh_18")
+material_override = SubResource("StandardMaterial3D_5")
+
+
+[node name="Chips0_1_0" type="MeshInstance3D" parent="."]
+position = Vector3(-1.11, 1.13, 0.6)
+scale = Vector3(1, 1, 1)
+mesh = SubResource("CylinderMesh_19")
+material_override = SubResource("StandardMaterial3D_4")
+
+
+[node name="Chips0_1_1" type="MeshInstance3D" parent="."]
+position = Vector3(-1.11, 1.157, 0.6)
+scale = Vector3(1, 1, 1)
+mesh = SubResource("CylinderMesh_20")
+material_override = SubResource("StandardMaterial3D_4")
+
+
+[node name="Chips0_1_2" type="MeshInstance3D" parent="."]
+position = Vector3(-1.11, 1.184, 0.6)
+scale = Vector3(1, 1, 1)
+mesh = SubResource("CylinderMesh_21")
+material_override = SubResource("StandardMaterial3D_4")
+
+
+[node name="Chips0_1_3" type="MeshInstance3D" parent="."]
+position = Vector3(-1.11, 1.211, 0.6)
+scale = Vector3(1, 1, 1)
+mesh = SubResource("CylinderMesh_22")
+material_override = SubResource("StandardMaterial3D_4")
+
+
+[node name="Chips1_0_0" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.13, 0.95)
+scale = Vector3(1, 1, 1)
+mesh = SubResource("CylinderMesh_23")
+material_override = SubResource("StandardMaterial3D_5")
+
+
+[node name="Chips1_0_1" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.157, 0.95)
+scale = Vector3(1, 1, 1)
+mesh = SubResource("CylinderMesh_24")
+material_override = SubResource("StandardMaterial3D_5")
+
+
+[node name="Chips1_0_2" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.184, 0.95)
+scale = Vector3(1, 1, 1)
+mesh = SubResource("CylinderMesh_25")
+material_override = SubResource("StandardMaterial3D_5")
+
+
+[node name="Chips1_0_3" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.211, 0.95)
+scale = Vector3(1, 1, 1)
+mesh = SubResource("CylinderMesh_26")
+material_override = SubResource("StandardMaterial3D_5")
+
+
+[node name="Chips1_1_0" type="MeshInstance3D" parent="."]
+position = Vector3(0.14, 1.13, 0.95)
+scale = Vector3(1, 1, 1)
+mesh = SubResource("CylinderMesh_27")
+material_override = SubResource("StandardMaterial3D_4")
+
+
+[node name="Chips1_1_1" type="MeshInstance3D" parent="."]
+position = Vector3(0.14, 1.157, 0.95)
+scale = Vector3(1, 1, 1)
+mesh = SubResource("CylinderMesh_28")
+material_override = SubResource("StandardMaterial3D_4")
+
+
+[node name="Chips1_1_2" type="MeshInstance3D" parent="."]
+position = Vector3(0.14, 1.184, 0.95)
+scale = Vector3(1, 1, 1)
+mesh = SubResource("CylinderMesh_29")
+material_override = SubResource("StandardMaterial3D_4")
+
+
+[node name="Chips1_1_3" type="MeshInstance3D" parent="."]
+position = Vector3(0.14, 1.211, 0.95)
+scale = Vector3(1, 1, 1)
+mesh = SubResource("CylinderMesh_30")
+material_override = SubResource("StandardMaterial3D_4")
+
+
+[node name="Chips2_0_0" type="MeshInstance3D" parent="."]
+position = Vector3(1.25, 1.13, 0.6)
+scale = Vector3(1, 1, 1)
+mesh = SubResource("CylinderMesh_31")
+material_override = SubResource("StandardMaterial3D_5")
+
+
+[node name="Chips2_0_1" type="MeshInstance3D" parent="."]
+position = Vector3(1.25, 1.157, 0.6)
+scale = Vector3(1, 1, 1)
+mesh = SubResource("CylinderMesh_32")
+material_override = SubResource("StandardMaterial3D_5")
+
+
+[node name="Chips2_0_2" type="MeshInstance3D" parent="."]
+position = Vector3(1.25, 1.184, 0.6)
+scale = Vector3(1, 1, 1)
+mesh = SubResource("CylinderMesh_33")
+material_override = SubResource("StandardMaterial3D_5")
+
+
+[node name="Chips2_0_3" type="MeshInstance3D" parent="."]
+position = Vector3(1.25, 1.211, 0.6)
+scale = Vector3(1, 1, 1)
+mesh = SubResource("CylinderMesh_34")
+material_override = SubResource("StandardMaterial3D_5")
+
+
+[node name="Chips2_1_0" type="MeshInstance3D" parent="."]
+position = Vector3(1.39, 1.13, 0.6)
+scale = Vector3(1, 1, 1)
+mesh = SubResource("CylinderMesh_35")
+material_override = SubResource("StandardMaterial3D_4")
+
+
+[node name="Chips2_1_1" type="MeshInstance3D" parent="."]
+position = Vector3(1.39, 1.157, 0.6)
+scale = Vector3(1, 1, 1)
+mesh = SubResource("CylinderMesh_36")
+material_override = SubResource("StandardMaterial3D_4")
+
+
+[node name="Chips2_1_2" type="MeshInstance3D" parent="."]
+position = Vector3(1.39, 1.184, 0.6)
+scale = Vector3(1, 1, 1)
+mesh = SubResource("CylinderMesh_37")
+material_override = SubResource("StandardMaterial3D_4")
+
+
+[node name="Chips2_1_3" type="MeshInstance3D" parent="."]
+position = Vector3(1.39, 1.211, 0.6)
+scale = Vector3(1, 1, 1)
+mesh = SubResource("CylinderMesh_38")
+material_override = SubResource("StandardMaterial3D_4")
