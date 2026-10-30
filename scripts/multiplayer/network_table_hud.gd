@@ -318,6 +318,9 @@ func refresh() -> void:
 		text = record.rule_message + " " + text
 	if _selecting_reroll:
 		text = "Reroll: click a gold card, or choose below and Replace Selected. Esc / R cancels."
+	if TableNetwork.pending:
+		var requested: String = {"hit": "Hit", "stand": "Stand", "double": "Double", "split": "Split", "ready": "Ready", "cancel": "Cancel Ready", "reroll": "Reroll", "second_chance": "Second Chance", "keep_mystery": "Keep Mystery Card", "replace_mystery": "Replace Mystery Card"}.get(TableNetwork.pending_action, "Action")
+		text = requested + " · Waiting for host…"
 	var progress := "Session Setup" if state.session.status == "setup" else "Round %d of %d" % [maxi(1, state.session.current_round), state.session.round_limit]
 	status_label.text = progress + " · " + text
 	status_label.tooltip_text = status_label.text

@@ -1,5 +1,5 @@
 extends Node
-## Host-only toy physics. Guests send intentions, never object transforms or impulses.
+## Host-only toy physics. Guests preview their own input, but send only intentions.
 ## This service has a stable autoload path, independent of lounge scene loading order.
 
 signal changed
@@ -28,6 +28,13 @@ var _last_serial: int = -1
 var _request_sequence: int = 0
 var _pending_until: int = 0
 var _elapsed: float = 0.0
+var _camera: Camera3D
+var _prediction: Dictionary = {}
+var _local_epoch: int = -1
+var _hold_epoch: int = -1
+var _visual_velocities: Array[Vector3] = []
+var _corrections: Dictionary = {}
+var _target_received_at: int = 0
 
 
 func _ready() -> void:
@@ -35,7 +42,13 @@ func _ready() -> void:
 	RoomNetwork.roster_changed.connect(_roster_changed)
 
 
-func attach(container: Node3D) -> void:
+func attach(container: Node3D, camera: Camera3D = null) -> void:
+	_camera = camera
+	_prediction.clear()
+	_corrections.clear()
+	_visual_velocities.clear()
+	_local_epoch = RoomNetwork.players.get(multiplayer.get_unique_id(), {}).get("epoch", -1)
+	_hold_epoch = _local_epoch
 	bodies.clear()
 	_homes.clear()
 	for child in container.get_children():
@@ -43,6 +56,7 @@ func attach(container: Node3D) -> void:
 		if toy == null:
 			continue
 		bodies.append(toy)
+		_visual_velocities.append(Vector3.ZERO)
 		_homes.append(toy.global_transform)
 		toy.collision_layer = TOY_LAYER
 		toy.collision_mask = 1 | TOY_LAYER | PLAYER_LAYER
@@ -71,6 +85,14 @@ func detach() -> void:
 	_release_immunity.clear()
 	_selection.clear()
 	_history.clear()
+	_prediction.clear()
+	_camera = null
+	_corrections.clear()
+	_target_received_at = 0
+	_visual_velocities.clear()
+	_pending_until = 0
+	_local_epoch = -1
+	_hold_epoch = -1
 	bodies.clear()
 	_homes.clear()
 
@@ -90,6 +112,8 @@ func _clear() -> void:
 
 
 func held_by(id: int) -> int:
+	if not multiplayer.is_server() and id == multiplayer.get_unique_id() and not _prediction.is_empty():
+		return _prediction.index if _prediction.action == "grab" else -1
 	return owners.find(id) if id > 0 else -1
 
 
@@ -133,6 +157,8 @@ func _visible(origin: Vector3, point: Vector3) -> bool:
 
 
 func hint(index: int) -> String:
+	if not _prediction.is_empty():
+		return "%s %s…" % [{"grab": "Grabbing", "drop": "Dropping", "throw": "Throwing", "push": "Pushing"}[_prediction.action], _toy_name(_prediction.index)]
 	var mine := held_by(multiplayer.get_unique_id())
 	if mine >= 0:
 		return "Drop %s [F] · Throw [Click]" % _toy_name(mine)
@@ -149,7 +175,7 @@ func _toy_name(index: int) -> String:
 
 ## One outstanding intention at a time: holding F or repeated clicks cannot toggle twice.
 func request(action: String, index: int) -> void:
-	if not RoomNetwork.active or index < 0 or index >= revisions.size() or Time.get_ticks_msec() < _pending_until:
+	if not RoomNetwork.active or index < 0 or index >= bodies.size() or index >= revisions.size() or Time.get_ticks_msec() < _pending_until:
 		return
 	_request_sequence += 1
 	var seen_serial := _serial if multiplayer.is_server() else _last_serial
@@ -160,7 +186,8 @@ func request(action: String, index: int) -> void:
 	if multiplayer.is_server():
 		_accept(1, action, index, revisions[index], _request_sequence, seen_serial, seen_point)
 	else:
-		_pending_until = Time.get_ticks_msec() + 1500
+		_pending_until = Time.get_ticks_msec() + clampi(maxi(0, RoomNetwork.ping_ms()) * 3 + 500, 1500, 4000)
+		_preview(action, index)
 		_submit.rpc_id(1, action, index, revisions[index], _request_sequence, seen_serial, seen_point)
 
 
@@ -169,13 +196,22 @@ func _submit(action: String, index: int, revision: int, sequence: int, seen_seri
 	if RoomNetwork.active and multiplayer.is_server():
 		var sender := multiplayer.get_remote_sender_id()
 		_accept(sender, action, index, revision, sequence, seen_serial, seen_point)
-		_ack.rpc_id(sender, sequence)
+		# The acknowledgement carries a definitive state even when validation rejects the request.
+		_ack.rpc_id(sender, sequence, _serial, _snapshot())
 
 
 @rpc("authority", "call_remote", "reliable", 0)
-func _ack(sequence: int) -> void:
+func _ack(sequence: int, serial: int, snapshot: Array) -> void:
 	if sequence == _request_sequence:
+		var index: int = _prediction.get("index", -1)
+		var released: bool = _prediction.get("action", "") in ["drop", "throw", "push"]
 		_pending_until = 0
+		_prediction.clear()
+		_receive(serial, snapshot)
+		if index >= 0 and index < bodies.size() and released and owners[index] == 0:
+			# Preserve the displayed pose at handoff, then ease out its error over host motion.
+			_corrections[index] = bodies[index].global_position - _guest_target(index).origin
+		changed.emit()
 
 
 ## Ownership revisions reject late grab/drop packets. A rejected request changes no physics.
@@ -260,7 +296,15 @@ func _release(index: int) -> void:
 
 ## Departure, seating, standing and reset all release before the holder can teleport the toy.
 func _roster_changed() -> void:
-	if not RoomNetwork.active or not multiplayer.is_server() or bodies.is_empty():
+	if not RoomNetwork.active or bodies.is_empty():
+		return
+	if not multiplayer.is_server():
+		var epoch: int = RoomNetwork.players.get(multiplayer.get_unique_id(), {}).get("epoch", -1)
+		if epoch != _local_epoch:
+			_local_epoch = epoch
+			_prediction.clear()
+			_corrections.clear()
+			_pending_until = 0
 		return
 	for index in range(owners.size()):
 		var id := owners[index]
@@ -274,6 +318,10 @@ func _physics_process(delta: float) -> void:
 	if not RoomNetwork.active or bodies.is_empty():
 		return
 	if not multiplayer.is_server():
+		if not _prediction.is_empty() and Time.get_ticks_msec() >= _pending_until:
+			_prediction.clear()
+			_pending_until = 0
+			changed.emit()
 		_apply_targets(false, delta)
 		return
 	_update_proxies(delta)
@@ -362,7 +410,8 @@ func _snapshot() -> Array:
 	var result: Array = []
 	for index in range(bodies.size()):
 		var toy := bodies[index]
-		result.append({"transform": toy.global_transform, "owner": owners[index], "revision": revisions[index], "warm": toy.warm_light, "interactions": toy.interaction_count})
+		result.append({"transform": toy.global_transform, "owner": owners[index], "revision": revisions[index], "warm": toy.warm_light, "interactions": toy.interaction_count,
+			"velocity": toy.linear_velocity, "spin": toy.angular_velocity})
 	return result
 
 
@@ -419,25 +468,124 @@ func _receive(serial: int, snapshot: Array) -> void:
 	var first := _targets.is_empty()
 	_last_serial = serial
 	_targets = snapshot
+	_target_received_at = Time.get_ticks_msec()
 	owners.clear()
 	revisions.clear()
 	for record in snapshot:
 		owners.append(record.owner)
 		revisions.append(record.revision)
+	var mine := owners.find(multiplayer.get_unique_id())
+	if mine < 0:
+		_hold_epoch = _local_epoch
+	if not _prediction.is_empty():
+		var current_owner: int = owners[_prediction.index]
+		if current_owner != 0 and current_owner != multiplayer.get_unique_id():
+			_prediction.clear()
 	_apply_targets(first)
 	changed.emit()
 
 
-## Guests interpolate host poses, including held objects. No competing local simulation.
+## Guests keep authoritative replicas frozen. Only their own interaction gets a visual preview.
 func _apply_targets(immediate: bool, delta: float = 0.0) -> void:
 	if _targets.size() != bodies.size():
 		return
 	for index in range(bodies.size()):
 		var toy := bodies[index]
 		var record: Dictionary = _targets[index]
-		toy.global_transform = record.transform if immediate else toy.global_transform.interpolate_with(record.transform, 1.0 - exp(-50.0 * delta))
+		var before := toy.global_position
+		var target := _guest_target(index)
+		if _corrections.has(index):
+			if record.owner != 0:
+				_corrections.erase(index)
+			else:
+				_corrections[index] *= exp(-6.0 * delta)
+				target.origin += _corrections[index]
+				target.origin = _sweep_preview(index, before, target.origin - before)
+				if _corrections[index].length() < 0.01:
+					_corrections.erase(index)
+		toy.global_transform = target if immediate else toy.global_transform.interpolate_with(target, 1.0 - exp(-50.0 * delta))
 		toy.held = record.owner != 0
 		toy.interaction_count = record.interactions
-		if toy.warm_light != record.warm:
-			toy.warm_light = record.warm
+		var warm: bool = record.warm
+		var preview: bool = not _prediction.is_empty() and _prediction.index == index
+		var local_hold: bool = record.owner == multiplayer.get_unique_id() and _hold_epoch == _local_epoch
+		if preview:
+			local_hold = _prediction.action == "grab"
+			toy.held = local_hold
+			warm = _prediction.warm
+			toy.interaction_count = _prediction.interactions
+		if not immediate and delta > 0.0 and is_instance_valid(_camera):
+			if local_hold:
+				toy.global_position = _sweep_preview(index, before, ((_local_hold_target() - before) * 18.0).limit_length(NetworkProp.MAX_SPEED) * delta)
+				toy.held = true
+			elif preview:
+				toy.global_position = _sweep_preview(index, before, _prediction.velocity * delta)
+				var spin: Vector3 = _prediction.spin
+				if spin.length() > 0.001:
+					toy.global_basis = Basis(spin.normalized(), spin.length() * delta) * _prediction.basis
+					_prediction.basis = toy.global_basis
+				toy.held = false
+			_visual_velocities[index] = ((toy.global_position - before) / delta).limit_length(NetworkProp.MAX_SPEED)
+		if toy.warm_light != warm:
+			toy.warm_light = warm
 			toy._update_light()
+
+
+## Predicted state never changes owners/revisions or runs gameplay. A matching host ack ends it.
+func _preview(action: String, index: int) -> void:
+	if not is_instance_valid(_camera) or action not in ["grab", "drop", "throw", "push"]:
+		return
+	var mine := owners.find(multiplayer.get_unique_id())
+	if action in ["grab", "push"] and (mine >= 0 or owners[index] != 0):
+		return
+	if action in ["drop", "throw"] and owners[index] != multiplayer.get_unique_id():
+		return
+	var toy := bodies[index]
+	_corrections.erase(index)
+	var record: Dictionary = _targets[index]
+	var velocity: Vector3 = record.velocity if action == "push" else _visual_velocities[index]
+	var spin: Vector3 = record.spin
+	var direction := -_camera.global_basis.z
+	if action == "push":
+		velocity += direction * 2.5
+	elif action == "throw":
+		velocity += direction * 6.0
+	if action in ["push", "throw"]:
+		spin += Vector3(4, 8, 3)
+	_prediction = {"index": index, "action": action, "velocity": velocity.limit_length(NetworkProp.MAX_SPEED),
+		"spin": spin.limit_length(NetworkProp.MAX_SPIN), "basis": toy.global_basis,
+		"warm": not toy.warm_light if action == "push" and toy.kind == LoungeProp.Kind.LIGHT else toy.warm_light,
+		"interactions": toy.interaction_count + (1 if action == "push" else 0)}
+	changed.emit()
+
+
+## Brief velocity extrapolation offsets packet age; host snapshots still decide every bounce.
+func _guest_target(index: int) -> Transform3D:
+	var record: Dictionary = _targets[index]
+	var target: Transform3D = record.transform
+	if record.owner == 0 and not bodies.is_empty():
+		var seconds := clampf(maxi(0, RoomNetwork.ping_ms()) / 2000.0 + (Time.get_ticks_msec() - _target_received_at) / 1000.0, 0.0, 0.2)
+		var velocity: Vector3 = record.velocity
+		target.origin = _sweep_preview(index, target.origin, velocity * seconds)
+	return target
+
+
+func _local_hold_target() -> Vector3:
+	return _sweep_preview(-1, _camera.global_position, -_camera.global_basis.z * 0.9)
+
+
+## Conservative visual sweeps keep previews inside furniture/walls until host collisions arrive.
+func _sweep_preview(index: int, origin: Vector3, motion: Vector3) -> Vector3:
+	if motion.length_squared() < 0.000001:
+		return origin
+	var query := PhysicsShapeQueryParameters3D.new()
+	var sphere := SphereShape3D.new()
+	sphere.radius = 0.16
+	query.shape = sphere
+	query.transform.origin = origin
+	query.motion = motion
+	query.collision_mask = 1
+	if index >= 0:
+		query.exclude = [bodies[index].get_rid()]
+	var fraction := bodies[0].get_world_3d().direct_space_state.cast_motion(query)
+	return origin + motion * fraction[0]

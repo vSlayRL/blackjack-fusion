@@ -28,12 +28,9 @@ window/size/viewport_width=960
 window/size/viewport_height=640
 window/size/window_width_override=960
 window/size/window_height_override=640
-window/subwindows/embed_subwindows=true
-window/size/resizable=true
+window/stretch/aspect="expand"
 window/size/min_width=640
 window/size/min_height=560
-window/stretch/mode="disabled"
-window/stretch/aspect="expand"
 
 [physics]
 

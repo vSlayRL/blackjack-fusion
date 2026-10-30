@@ -11,6 +11,7 @@ var _notice: String = ""
 var _target_seat: int = -1
 var _title: Label
 var _roster: Label
+var _latency: Label
 var _hint: Label
 var _hint_panel: PanelContainer
 var _dot: Label
@@ -33,6 +34,7 @@ func _ready() -> void:
 		get_tree().change_scene_to_file.call_deferred("res://scenes/multiplayer/launcher.tscn")
 		return
 	RoomNetwork.roster_changed.connect(_sync_roster)
+	RoomNetwork.latency_changed.connect(_refresh_latency)
 	RoomNetwork.poses_changed.connect(_sync_poses)
 	RoomNetwork.teleported.connect(_teleport_local)
 	RoomNetwork.notice_received.connect(_show_notice)
@@ -72,7 +74,7 @@ func _ready() -> void:
 			child.hide()
 	leaderboard = preload("res://scenes/multiplayer/network_leaderboard.tscn").instantiate() as NetworkLeaderboard
 	$Environment/Furniture.add_child(leaderboard)
-	ToyNetwork.attach($Environment/TableToys)
+	ToyNetwork.attach($Environment/TableToys, local_avatar.camera)
 	_session_changed()
 
 
@@ -359,8 +361,27 @@ func _refresh_heading() -> void:
 		var seated := "Chair %d" % (record.seat + 1) if record.seat >= 0 else "Walking"
 		names.append("%s%s · %s" % [record.name, " (Host)" if record.id == 1 else "", seated])
 	_roster.text = " · ".join(names)
+	_refresh_latency()
 	if multiplayer.is_server() and not RoomNetwork.online_room:
 		_roster.tooltip_text = "Same computer: 127.0.0.1\nLAN addresses: %s\nPort: %d / UDP" % [", ".join(RoomNetwork.lan_addresses()), RoomNetwork.port]
+
+
+func _refresh_latency() -> void:
+	if _latency == null:
+		return
+	if not multiplayer.is_server():
+		var ping := RoomNetwork.ping_ms()
+		_latency.text = "Ping: %d ms" % ping if ping >= 0 else "Ping: —"
+		return
+	var samples: Array[int] = []
+	for id in RoomNetwork.players:
+		var ping := RoomNetwork.ping_ms(id)
+		if id != 1 and ping >= 0:
+			samples.append(ping)
+	_latency.text = "Host · Local" if RoomNetwork.players.size() == 1 else "Guests: —"
+	if not samples.is_empty():
+		samples.sort()
+		_latency.text = "Guests: %d ms" % samples[0] if samples[0] == samples.back() else "Guests: %d–%d ms" % [samples[0], samples.back()]
 
 
 ## Compact room UI leaves the world visible and makes connection details easy to find.
@@ -402,8 +423,15 @@ func _build_hud() -> void:
 	leave.text = "Leave Room"
 	leave.pressed.connect(_leave)
 	row.add_child(leave)
+	var roster_row := HBoxContainer.new()
+	layout.add_child(roster_row)
 	_roster = _label("", 15)
-	layout.add_child(_roster)
+	_roster.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	roster_row.add_child(_roster)
+	_latency = _label("Ping: —", 14)
+	_latency.autowrap_mode = TextServer.AUTOWRAP_OFF
+	_latency.tooltip_text = "Smoothed round-trip time over the game connection. Online includes the relay. Host actions run locally; guest values measure each guest's connection to this host."
+	roster_row.add_child(_latency)
 	if RoomNetwork.online_room:
 		var code_row := HBoxContainer.new()
 		layout.add_child(code_row)

@@ -18,6 +18,14 @@ No player configures router port forwarding for this mode. Players still need in
 
 **Verification boundary:** automated checks route real independent Godot game processes through a local Noray-compatible relay. They exercise the actual registration, UDP handshake and forwarded ENet game packets, but do not certify the public service or every real router/ISP. The two-PC, two-network steps above are the acceptance test for your setup.
 
+## Latency and interaction responsiveness
+
+- The joining player's header shows **Ping: N ms**, a smoothed round-trip measurement over the actual game connection. The host sees **Guests: N ms** or a range for several guests. **Host · Local** means no guests are connected; a dash means a fresh sample has not arrived. Ping is separate from graphics frame rate.
+- Compare Online with LAN / Direct IP using the same PCs. Online always routes through the relay, including on the same network. Hosting is locally responsive; a guest's confirmed changes still require the network round trip.
+- Grab, turn while carrying, drop, push and throw a nearby toy as the guest. Motion/glow should begin locally; a held toy should follow your own camera. A short pending hint prevents duplicate input until acknowledgement. Other players see the host's confirmed version.
+- Try a competing grab and change stations/reset while carrying. The host must retain exclusive ownership, and rejected previews must clear. Brief correction is possible when the host's collision result differs from the local preview. Walls/furniture still restrict carrying; prediction never changes Blackjack state.
+- Click Ready/Hit or use its shortcut: **Waiting for host…** should appear immediately, then clear with the confirmed result. No card, wager or payout is guessed locally. A slower public relay can still delay these outcomes.
+
 ## First LAN test: two windows on your computer
 
 1. Import this build's `project.godot` in Godot 4.7.x.
@@ -135,7 +143,7 @@ The multiplayer table is wider and has **four playable chairs**, in addition to 
 | N / Replace · Reveal [N] | Replace and reveal the Mystery Card once. |
 | B / Ready [B] | Ready/cancel your next bet. |
 | Console | Unified session setup and next-deal rules; View Results reopens final standings. |
-| R (walking only) | Return to the entrance. F remains reserved for future multiplayer toy pickup/drop. |
+| R (walking only) | Return to the entrance. F grabs/drops multiplayer toys. |
 | Escape | Cancel Reroll selection without spending it, or release the mouse cursor. |
 | F11 / Alt+Enter | Toggle fullscreen in a standalone window. |
 | Leave Room | Return to the launcher. If the host leaves, guests also return. |
@@ -162,6 +170,14 @@ Use this **same build** on both computers and select **LAN / Direct IP** in both
 If multiple addresses are listed, choose the address for the Wi-Fi/Ethernet connection shared by both computers. Some school or guest Wi-Fi networks isolate devices; try a private LAN if peers cannot reach each other. LAN / Direct IP mode uses direct UDP. For different houses without router configuration, use **Online · Room Code**, which sends the existing ENet game through a Noray relay. There is no public matchmaking/server browser or account system.
 
 ## Automated checks
+
+Delayed-relay interaction and ping checks (adds 120 ms in each direction, about 240 ms RTT):
+
+```text
+python tools/run_latency_tests.py --godot "C:\path\to\Godot_v4.7.2-stable_win64.exe"
+```
+
+This uses two actual game processes and the local relay's delayed UDP forwarding. It checks that previews precede host replies, held toys follow the local view, acknowledgements reconcile state, push/glow happens once, competing or stale requests cannot steal ownership, lost replies cannot leave a preview locked, reset/exit clears transient state, card actions show pending feedback without inventing results, and the ping readout fits 640×560 and 1920×1080. Success prints **ALL MULTIPLAYER LATENCY TESTS PASSED (240ms added RTT)**. Add `--rendered` to run native windows on a desktop; optional `--screenshots <existing-directory>` captures internal QA views. This is a repeatable latency test, not a measurement of the public relay.
 
 Online launcher/cleanup and complete games through actual relayed UDP sockets:
 

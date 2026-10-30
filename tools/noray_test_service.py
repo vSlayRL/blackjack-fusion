@@ -28,19 +28,30 @@ class Relay(asyncio.DatagramProtocol):
     def datagram_received(self, data, address):
         source = next((e for e in self.service.relay_entries if e.get("remote") == address), None)
         if source and source.get("relay") and self.target.get("remote"):
-            source["relay"].sendto(data, self.target["remote"])
+            if self.service.delay_seconds:
+                asyncio.get_running_loop().call_later(
+                    self.service.delay_seconds, self.service.forward,
+                    source["relay"], data, self.target["remote"])
+            else:
+                source["relay"].sendto(data, self.target["remote"])
             self.service.packets += 1
             self.service.byte_count += len(data)
 
 
 class NorayTestService:
-    def __init__(self):
+    def __init__(self, delay_seconds=0.0):
         self.entries, self.private = {}, {}
         self.relay_entries = []
         self.packets = self.byte_count = 0
         self.serial = 0
         self.transports = []
         self.silent = False
+        self.delay_seconds = delay_seconds
+        self.closed = False
+
+    def forward(self, transport, data, address):
+        if not self.closed:
+            transport.sendto(data, address)
 
     async def start(self):
         loop = asyncio.get_running_loop()
@@ -101,6 +112,7 @@ class NorayTestService:
             writer.close()
 
     async def close(self):
+        self.closed = True
         self.server.close()
         await self.server.wait_closed()
         for entry in list(self.entries.values()):

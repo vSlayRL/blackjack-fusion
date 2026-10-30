@@ -7,6 +7,7 @@ signal notice_received(message: String)
 var table: ClassicTable
 var state: Dictionary = {}
 var pending: bool = false
+var pending_action: String = ""
 var _sequence: int = 0
 var _accepted: Dictionary = {}
 var _lifted: Dictionary = {}
@@ -22,6 +23,7 @@ func _clear() -> void:
 	table = null
 	state = {}
 	pending = false
+	pending_action = ""
 	_sequence = 0
 	_accepted.clear()
 	_lifted.clear()
@@ -87,6 +89,7 @@ func request(action: String, amount: float = 0.0, card_index: int = -1) -> void:
 	if not RoomNetwork.active or state.is_empty() or pending:
 		return
 	pending = true
+	pending_action = action
 	_sequence += 1
 	if multiplayer.is_server():
 		_handle(1, action, amount, state.round, state.revision, _sequence, card_index, state.settings_revision, state.session.id)
@@ -193,6 +196,7 @@ func _receive_state(snapshot: Dictionary) -> void:
 func _ack(sequence: int, message: String) -> void:
 	if sequence == _sequence:
 		pending = false
+		pending_action = ""
 	if not message.is_empty():
 		notice_received.emit(message)
 	changed.emit()

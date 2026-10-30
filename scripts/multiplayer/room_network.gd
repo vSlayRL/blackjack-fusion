@@ -8,10 +8,11 @@ signal poses_changed
 signal notice_received(message: String)
 signal connection_ended(message: String)
 signal room_closed
+signal latency_changed
 
 const DEFAULT_PORT: int = 24567
 const MAX_PLAYERS: int = 4
-const PROTOCOL: int = 9
+const PROTOCOL: int = 10
 # Match the lounge's wall centers (x = ±7, z = ±6.5). The capsule stops
 # inside these walls; a smaller network envelope rejects valid collision poses
 # and repeatedly teleports the player, also resetting their camera direction.
@@ -37,6 +38,10 @@ var _send_sequence: int = 0
 var _pose_times: Dictionary = {}
 var _sequences: Dictionary = {}
 var _last_server_seen: int = 0
+var _ping_elapsed: float = 0.0
+var _ping_sent: Dictionary = {}
+var _latencies: Dictionary = {}
+var _ping_times: Dictionary = {}
 
 
 func _ready() -> void:
@@ -163,6 +168,10 @@ func leave_room() -> void:
 	_sequences.clear()
 	_send_sequence = 0
 	_snapshot_elapsed = 0.0
+	_ping_elapsed = 0.0
+	_ping_sent.clear()
+	_latencies.clear()
+	_ping_times.clear()
 	room_closed.emit()
 
 
@@ -221,6 +230,9 @@ func _peer_left(id: int) -> void:
 	players.erase(id)
 	_pose_times.erase(id)
 	_sequences.erase(id)
+	_ping_sent.erase(id)
+	_latencies.erase(id)
+	_ping_times.erase(id)
 	_broadcast_roster()
 
 
@@ -252,6 +264,8 @@ func _process(delta: float) -> void:
 		_end_connection("Online room timed out. Check the full room code and that its host is online." if online_room else "Connection timed out. Check the host IP/port, room capacity, and firewall access.")
 	if active and not multiplayer.is_server() and Time.get_ticks_msec() - _last_server_seen > 6000:
 		_end_connection("Lost connection to the host. You can host or join another room.")
+	if active:
+		_update_latency(delta)
 	if not active or not multiplayer.is_server():
 		return
 	_snapshot_elapsed += delta
@@ -264,6 +278,47 @@ func _process(delta: float) -> void:
 			if id != 1:
 				_receive_poses.rpc_id(id, poses)
 		poses_changed.emit()
+
+
+## Measure the actual game route, including the relay. Unreliable probes never hold up actions.
+func _update_latency(delta: float) -> void:
+	_ping_elapsed += delta
+	if _ping_elapsed < 1.0:
+		return
+	_ping_elapsed = 0.0
+	var now := Time.get_ticks_msec()
+	for id in players:
+		if id == multiplayer.get_unique_id() or (not multiplayer.is_server() and id != 1):
+			continue
+		if not _ping_sent.has(id) or now - int(_ping_sent[id]) >= 3000:
+			_ping_sent[id] = now
+			_ping.rpc_id(id, now)
+	latency_changed.emit()
+
+
+func ping_ms(id: int = 1) -> int:
+	if not _ping_times.has(id) or Time.get_ticks_msec() - int(_ping_times[id]) > 5000:
+		return -1
+	return roundi(_latencies[id])
+
+
+@rpc("any_peer", "call_remote", "unreliable", 3)
+func _ping(stamp: int) -> void:
+	var sender := multiplayer.get_remote_sender_id()
+	if active and players.has(sender) and (multiplayer.is_server() or sender == 1):
+		_pong.rpc_id(sender, stamp)
+
+
+@rpc("any_peer", "call_remote", "unreliable", 3)
+func _pong(stamp: int) -> void:
+	var sender := multiplayer.get_remote_sender_id()
+	if not active or not _ping_sent.has(sender) or _ping_sent[sender] != stamp:
+		return
+	_ping_sent.erase(sender)
+	var elapsed := maxi(0, Time.get_ticks_msec() - stamp)
+	_latencies[sender] = float(elapsed) if ping_ms(sender) < 0 else lerpf(_latencies[sender], float(elapsed), 0.25)
+	_ping_times[sender] = Time.get_ticks_msec()
+	latency_changed.emit()
 
 
 ## Movement uses ordered snapshots; card/seat decisions use reliable messages instead.
