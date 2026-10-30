@@ -1,0 +1,182 @@
+[gd_scene load_steps=20 format=3]
+
+[sub_resource type="StandardMaterial3D" id="R1"]
+albedo_color = Color(0.88, 0.92, 0.95, 1)
+roughness = 0.35
+metallic = 0.2
+
+[sub_resource type="StandardMaterial3D" id="R2"]
+albedo_color = Color(0.025, 0.07, 0.10, 1)
+roughness = 0.35
+metallic = 0.2
+
+[sub_resource type="StandardMaterial3D" id="R3"]
+albedo_color = Color(0.2, 0.87, 0.95, 1)
+roughness = 0.35
+metallic = 0.2
+shading_mode = 0
+emission_enabled = true
+emission = Color(0.2, 0.87, 0.95, 1)
+emission_energy_multiplier = 0.7
+
+[sub_resource type="StandardMaterial3D" id="R4"]
+albedo_color = Color(0.97, 0.99, 1, 1)
+roughness = 0.35
+metallic = 0.2
+
+[sub_resource type="StandardMaterial3D" id="R5"]
+albedo_color = Color(0.12, 0.18, 0.24, 1)
+roughness = 0.35
+metallic = 0.2
+
+[sub_resource type="SphereMesh" id="R6"]
+radius = 0.34
+height = 1.1
+radial_segments = 48
+rings = 24
+
+[sub_resource type="SphereMesh" id="R7"]
+radius = 0.3
+height = 0.6
+radial_segments = 32
+rings = 16
+
+[sub_resource type="SphereMesh" id="R8"]
+radius = 0.046
+height = 0.092
+
+[sub_resource type="SphereMesh" id="R9"]
+radius = 0.025
+height = 0.05
+
+[sub_resource type="SphereMesh" id="R10"]
+radius = 0.095
+height = 0.19
+
+[sub_resource type="SphereMesh" id="R11"]
+radius = 0.13
+height = 0.26
+
+[sub_resource type="SphereMesh" id="R12"]
+radius = 0.046
+height = 0.092
+
+[sub_resource type="SphereMesh" id="R13"]
+radius = 0.025
+height = 0.05
+
+[sub_resource type="SphereMesh" id="R14"]
+radius = 0.095
+height = 0.19
+
+[sub_resource type="SphereMesh" id="R15"]
+radius = 0.13
+height = 0.26
+
+[sub_resource type="SphereMesh" id="R16"]
+radius = 0.068
+height = 0.136
+
+[sub_resource type="CylinderMesh" id="R17"]
+top_radius = 0.301
+bottom_radius = 0.301
+height = 0.055
+
+[sub_resource type="BoxMesh" id="R18"]
+size = Vector3(0.32, 0.37, 0.12)
+
+[sub_resource type="BoxMesh" id="R19"]
+size = Vector3(0.24, 0.045, 0.035)
+
+[node name="EggPlayer" type="Node3D"]
+
+
+[node name="EggBody" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.57, 0)
+mesh = SubResource("R6")
+material_override = SubResource("R1")
+
+[node name="Visor" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.75, -0.29)
+mesh = SubResource("R7")
+material_override = SubResource("R2")
+scale = Vector3(0.89, 0.42, 0.16)
+
+[node name="LeftEye" type="MeshInstance3D" parent="."]
+position = Vector3(-0.105, 0.755, -0.335)
+mesh = SubResource("R8")
+material_override = SubResource("R4")
+scale = Vector3(1, 1.12, 0.4)
+
+[node name="LeftPupil" type="MeshInstance3D" parent="."]
+position = Vector3(-0.105, 0.751, -0.355)
+mesh = SubResource("R9")
+material_override = SubResource("R2")
+scale = Vector3(1, 1.2, 0.3)
+
+[node name="LeftArm" type="MeshInstance3D" parent="."]
+position = Vector3(-0.34, 0.37, -0.06)
+mesh = SubResource("R10")
+material_override = SubResource("R1")
+scale = Vector3(0.85, 1.3, 1.5)
+
+[node name="LeftBoot" type="MeshInstance3D" parent="."]
+position = Vector3(-0.15, 0.045, -0.21)
+mesh = SubResource("R11")
+material_override = SubResource("R5")
+scale = Vector3(0.85, 0.45, 1.5)
+
+[node name="RightEye" type="MeshInstance3D" parent="."]
+position = Vector3(0.105, 0.755, -0.335)
+mesh = SubResource("R12")
+material_override = SubResource("R4")
+scale = Vector3(1, 1.12, 0.4)
+
+[node name="RightPupil" type="MeshInstance3D" parent="."]
+position = Vector3(0.105, 0.751, -0.355)
+mesh = SubResource("R13")
+material_override = SubResource("R2")
+scale = Vector3(1, 1.2, 0.3)
+
+[node name="RightArm" type="MeshInstance3D" parent="."]
+position = Vector3(0.34, 0.37, -0.06)
+mesh = SubResource("R14")
+material_override = SubResource("R1")
+scale = Vector3(0.85, 1.3, 1.5)
+
+[node name="RightBoot" type="MeshInstance3D" parent="."]
+position = Vector3(0.15, 0.045, -0.21)
+mesh = SubResource("R15")
+material_override = SubResource("R5")
+scale = Vector3(0.85, 0.45, 1.5)
+
+[node name="ChestBadge" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.43, -0.318)
+mesh = SubResource("R16")
+material_override = SubResource("R3")
+scale = Vector3(1, 1, 0.25)
+
+[node name="AccentBelt" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.32, 0)
+mesh = SubResource("R17")
+material_override = SubResource("R3")
+
+[node name="Backpack" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.52, 0.29)
+mesh = SubResource("R18")
+material_override = SubResource("R5")
+
+[node name="BackpackLight" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.57, 0.365)
+mesh = SubResource("R19")
+material_override = SubResource("R3")
+
+[node name="NameLabel" type="Label3D" parent="."]
+position = Vector3(0, 1.32, 0)
+text = "MOCK PLAYER"
+font_size = 24
+pixel_size = 0.003
+modulate = Color(0.2, 0.87, 0.95, 1)
+outline_size = 2
+outline_modulate = Color(0.01, 0.03, 0.05, 1)
+billboard = 1

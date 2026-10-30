@@ -4,6 +4,8 @@
 
 - [Overview](#overview)
 - [Run the Project](#run-the-project)
+- [Multiplayer Test Guide](MULTIPLAYER_TESTING.md)
+- [Multiplayer Room Files](#multiplayer-room-files)
 - [Playable 3D Room](#playable-3d-room)
 - [Project Structure](#current-project-structure)
 - [Script Responsibilities](#script-responsibilities)
@@ -20,7 +22,7 @@ Blackjack Fusion is a Godot 4.7 project that is being built in iterations. The l
 
 Current scope:
 
-* One player versus the dealer
+* Shared Blackjack for up to four players against one dealer, including Classic and all five special rules, plus the original Solo game
 * Standard 52-card deck
 * Betting and bankroll
 * Hit, stand, double down, and split
@@ -40,24 +42,44 @@ Current scope:
 * Green/red net winnings and losses, including per-hand results
 * Pre-round rule settings: Off, Always Active, or Random
 * A modular special-rule registry and gameplay hooks
-* No multiplayer yet
+* Online room-code hosting/joining through a Noray relay, plus LAN/direct-IP connections
+* Multiplayer Host/Join, named egg avatars, synchronized movement, exclusive seating, shared hands/turns/rules, automatic payouts and individual bankrolls (up to four players)
 * A playable 3D space lounge with table seating, physical cards, walking controls, and a planet outside the window
-* A physical session console with round limits, starting bankroll, Classic/All Selected/Random modes, and random rules per round
-* Finite 3D sessions, a round counter, locked settings, and final balance/net results
+* Shared floating toys with host-run physics, exclusive F pickup/drop, centered carrying, throws, player collisions and synchronized glow
+* Solo and multiplayer session setup with round limits and starting money, plus Classic/Random/All Active and 1–5 random rules per deal
+* Finite Solo and multiplayer sessions, shared round progress, locked starting money/length, final balance/net results and tied multiplayer placements
 
 ---
 
 ## Run the Project
 
-Open `project.godot` in Godot 4.7.x and press **F5**.
+Open `project.godot` in Godot 4.7.x and press **F5** for the launcher. Choose **Online · Room Code** (default) or **LAN / Direct IP**, then Host/Join; **Solo 3D** and **Solo 2D** remain available.
+
+**Two PCs on different networks:** both use Online mode and the same build. The host selects **Host Online Room**, waits for the room, and clicks **Copy Code** in the room header. The other player pastes that full code into the launcher and selects **Join by Code**. Game traffic goes through a relay, so players do not configure router port forwarding. The host still runs game decisions and must keep the room open.
+
+Online mode uses the public Noray **development** service at `foxssake.studio` (control TCP 8890 / registration UDP 8809; dynamic UDP relay ports). Its availability/capacity are not guaranteed. **Advanced online settings** can point everyone at the same team-owned Noray deployment without changing gameplay code. This is a cross-network test build, not managed production hosting. Allow the game through the applicable firewall; networks that block the service’s UDP traffic can still prevent joining.
+
+The transport follows [Noray’s documented protocol](https://github.com/foxssake/noray) and [Godot integration guide](https://foxssake.github.io/netfox/latest/netfox.noray/guides/noray/). See the test guide for the real two-PC test and local relay checks.
+
+The multiplayer lounge supports up to **four players total**, including the host. Players can explore, sit, ready individual bets and play **Blackjack together**, with Classic or all five special rules, using a shared deck, one dealer, ordered turns, Hit/Stand/Double/Split, and automatic payouts. The widened table has four playable seats and a synchronized **Lift My Cards [V]** view for reading your hand. **G** sits/leaves the chair; seated **E** stands the Blackjack hand. Action buttons show their shortcuts. **Reroll [R]** highlights eligible physical cards for clicking, with a dropdown/Replace Selected alternative and free cancellation; no card is replaced by default. **L** cycles tabletop displays between Faint, Hidden and Solid; **H** hides/restores screen overlays. C/D/V/L/H/G are grouped beside the balance and round net result, wrapping in smaller windows. The permanent bottom hint bar is replaced by contextual prompts. Dealer cards lie flat by default. **Raise Dealer Cards [D]** lifts a smaller row at the dealer’s side only for the player pressing it; D again lowers it without changing camera position or zoom. The hole card stays concealed until settlement.
+
+Before betting, the host opens the unified **Console** and chooses **1–100 rounds** and **$1–$100,000 starting money** (defaults: 10/$100). Everyone connected at Start enters with the same bankroll. The HUD shows Round X of Y; final payouts open shared standings with **Place, Player Name, Starting Balance, Ending Balance and Net Profit**, with equal balances sharing placement. A physical leaderboard on the left wall shows settled standings between rounds and keeps those balances while wagers are reserved. The host can start a fresh competition through **New Session**. Late/reconnecting players spectate until then, while departed entrants keep their settled scores. The host automatically validates actions; it never needs to manually approve them.
+
+Open **Console** or approach the physical console and press E: the host saves Classic/Random/All Active, the checked rule pool and random count (1–5); guests can inspect. Session setup and all rule choices share one scrolling form. Start Session commits the entire draft; during play, rule edits apply next deal and clear Ready confirmations. There is no separate Session button. Active rules and the random 22–30 Double Target are shared; Reroll, recovery and Mystery Card choices belong to each player. All opening choices finish before ordinary turns. A qualifying Lucky 9 hand immediately gains a gold table label with its potential bonus, and the owner's rules line says qualified. 
+
+**Multiplayer toys:** aim at a nearby die, token or orb and press **F** to grab it; F again drops it. **Click** pushes a free toy; the orb also changes glow. While holding, **Click throws** it in your viewing direction. Cursor aiming works while seated; mouse-look uses the center dot. Held toys line up with the center reticle, collide with room geometry and release on standing, sitting, reset or disconnect. Dropping preserves carrying momentum; throws add forward speed and spin. Free toys bounce off walking and seated player bodies without moving their cameras. Everyone sees the same host-simulated motion; one player can hold each toy, and each player can hold one. Walking into a toy nudges it without blocking player movement. A small grab area and brief movement tolerance make nearby fast toys catchable; walls, furniture and the nearby reach limit still apply. Toys never change Blackjack state. Pressing **Enter** in the bet field commits its value and releases text focus, immediately restoring shortcuts.
+
+Persistent wins and cosmetics remain upcoming milestones. **Solo 3D** retains all five rules, floating toys, and finite sessions.
+
+See [MULTIPLAYER_TESTING.md](MULTIPLAYER_TESTING.md) for Online room-code tests across networks and LAN/direct-IP tests.
 
 The main project scene is:
 
 ```text
-scenes/main.tscn
+scenes/multiplayer/launcher.tscn
 ```
 
-It loads the temporary playable interface from:
+The original Solo 2D interface is still available from the launcher or directly from:
 
 ```text
 scenes/game.tscn
@@ -75,7 +97,7 @@ Select that scene and press **F6** to run the existing logic and UI checks. The 
 
 ## Playable 3D Room
 
-Open `scenes/room/space_lounge.tscn` and press **F6**. **F5** continues to launch the existing 2D Blackjack interface.
+Open `scenes/room/space_lounge.tscn` and press **F6**. **F5** opens the launcher; choose **Solo 3D** for this room or **Solo 2D** for the original interface.
 
 ### Walking and interacting
 
@@ -134,7 +156,7 @@ The table displays **Round X of Y**. One completed deal consumes one round, incl
 
 After the final deal settles, further deals are blocked and **Session Results** shows the actual completed rounds, starting money, final balance, and total net profit/loss (green/red). If less than the $1 minimum bet remains, the session ends early without refilling money. Choose **Back to Room** to keep exploring and playing with toys. You can close the results window and reopen it with **View Session Results** at the table.
 
-**New Session** replaces the 3D Restart button and is available only after the session ends. It opens setup directly, retaining the last length, starting money, and rule choices as defaults. The finished console also provides **New Session**. Choose **Start Session** to begin another session, or Cancel to continue exploring before deciding. Session progress lasts while the room scene is running; disk saves and multiplayer are future work. Multiplayer will give everyone equal starting money, host-controlled settings, and a winner based on final bankroll; this build reports a single player's results.
+**New Session** replaces the 3D Restart button and is available only after the session ends. It opens setup directly, retaining the last length, starting money, and rule choices as defaults. The finished console also provides **New Session**. Choose **Start Session** to begin another session, or Cancel to continue exploring before deciding. Solo session progress lasts while its room scene is running; disk saves are future work. The multiplayer launcher has its own host-controlled finite sessions and shared final standings, set up through the unified **Console**. This Solo results screen reports one player's session.
 
 The **2D interface** remains the original standalone Blackjack demo, with its existing Restart and between-round rule settings. Finite session controls are currently part of the **3D room**.
 
@@ -156,7 +178,7 @@ The room includes editable Godot primitive models with no external asset depende
 
 Open `scenes/room/room_tests.tscn` and press **F6** for room integration checks. These cover session console draft/Start/Cancel and locked settings, real viewport E/click dispatch, seating/session persistence, active-round locks, hidden-card secrecy, 3D Reroll picking, special payouts, four-hand Split/Double, repeated real GUI Hit clicks, seated look/focus/focus-loss behavior, toy clicks/E without gameplay changes, free drift, wall/floor/ceiling bounces, toy-to-toy momentum transfer, walking toy interaction, F pickup/drop/carry/release, held-wall collision, station/reset release, sprint distance, jump height/glide/landing, grounded-only jumping, no automatic repeat jumps, tabletop landing, concealed tabletop totals, and HUD bounds from 640×560 through 2560×1080. Successful runs end with **ALL 3D ROOM TESTS PASSED**. Sprint/jump and walking pickup checks require a rendered game window; headless runs explicitly skip those cursor-capture checks. Open `scenes/room/session_tests.tscn` and press **F6** for session checks; successful runs end with **ALL SESSION TESTS PASSED**. The original `scenes/tests.tscn` still runs all engine and 2D UI checks.
 
-The current 3D version is single-player. Avatars, a dealer character, sound, and networking remain future work.
+The **Solo 3D** game remains single-player. The separate **multiplayer lounge** supports named egg avatars, movement, seating, shared Blackjack and all five special rules. Host-controlled finite sessions and final standings are also playable; shared toy physics/pickup is playable, while persistent wins remain upcoming.
 
 ---
 
@@ -238,15 +260,15 @@ The central game controller. It owns the deck, player, and dealer and controls r
 
 ```text
 Waiting for Bet
-      ↓
+	  ↓
 Initial Deal
-      ↓
+	  ↓
 Player Turn
-      ↓
+	  ↓
 Dealer Turn
-      ↓
+	  ↓
 Resolve Result
-      ↓
+	  ↓
 Round Over
 ```
 
@@ -468,11 +490,49 @@ Future iterations may add:
 
 * More detailed furniture and card presentation
 * Player avatars and seating animations
-* Multiplayer/networking
+* Persistent wins and optional cosmetics
 * Sound and visual feedback
 * Menus and game settings
 
-The 3D table, finite sessions, session console, and room toys are playable. Avatars, a dealer character, sound, and networking remain future work.
+The Solo 3D table, finite sessions, session console, and room toys are playable. Multiplayer adds networked avatars, movement, seating, and a shared table with synchronized special rules and personal rule allowances. Multiplayer finite sessions and tied final standings are playable. Shared toy physics and pickup are playable. Persistent progress, a dealer character, and sound remain future work.
+
+---
+
+## Multiplayer room files
+
+The host opens **Console**, chooses 1–100 rounds and $1–$100,000 per player, and starts after everyone connects. Money and length lock until the competition ends; rule changes still apply next deal. One complete dealer settlement counts once for all hands; refunded deals can be retried. Results rank final bankrolls at displayed cent precision, with tied places (1, 1, 3). **Back to Room** closes results; **Console → View Results** reopens them; the host's **New Session** resets current connections to equal new bankrolls. Late/reconnecting players spectate for the current session, while departed entrants keep their settled result. The session ends early if no connected entrant can afford another bet. These sessions are in-memory and end with the host's room.
+
+Multiplayer actions: **Q Hit**, **E Stand/accept bust**, **Z Double**, **X Split**, **R Reroll/cancel**, **T Second Chance**, **K keep Mystery**, **N replace Mystery**, **B Ready/cancel**. **G** sits/leaves the chair. **E** opens the console and **R** resets while walking. **Esc** cancels selection or releases the cursor. These changes apply to the multiplayer lounge; Solo retains its original controls.
+
+| File | Responsibility |
+| --- | --- |
+| `scenes/multiplayer/launcher.tscn`, `scripts/multiplayer/launcher.gd` | Host/Join menu, connection status/cancellation, IP/port/name entry, and Solo launch buttons. |
+| `scripts/multiplayer/room_network.gd` | ENet transport, accepted membership, host-owned seats, ordered pose snapshots, reset generations, disconnect cleanup, and connection timeout. |
+| `scenes/multiplayer/network_lounge.tscn`, `scripts/multiplayer/network_lounge.gd` | The shared room, one local camera, named remote avatars, four seats, interaction prompts, HUD hide/restore, connection information, and Leave Room. |
+| `scenes/multiplayer/network_avatar.tscn`, `scripts/multiplayer/network_avatar.gd` | Reuses the Solo movement/jump controller locally; interpolates remote movement and applies seated poses. |
+| `scenes/multiplayer/egg_avatar.tscn` | Reusable native egg placeholder avatar with colored accents and a player nameplate. |
+| `scenes/multiplayer/network_environment.tscn` | Same lounge geometry, furniture, lighting, and backdrop; toys use the same primitive bodies as Solo, simulated by the host and interpolated by guests. |
+| `scenes/multiplayer/network_tests.tscn`, `scripts/multiplayer/network_integration_test.gd` | Real three-peer joining, movement, seat ownership, invalid/stale pose, reset, disconnect, and reconnect scenarios. |
+| `tools/run_multiplayer_tests.py` | Launches the independent headless test peers and checks their results, plus an unreachable-host scenario. |
+| `scripts/multiplayer/classic_table.gd` | Host-owned betting, shared deck/dealer/rule selection/target, next-deal settings, opening choices, turn order, hidden-card snapshots and exactly-once settlement. |
+| `scripts/multiplayer/classic_table_hand.gd` | Reuses Solo actions, rule hooks and payouts with personal rule instances, deferring opening settlement and dealer play until all players finish. |
+| `scripts/multiplayer/network_rule_console.gd` | Unified scrolling session/rule form, host-only atomic Start, locked money/length, guest inspection, checked pool, random count, Apply/Cancel and stale draft detection. |
+| `scripts/multiplayer/network_prop.gd` | Multiplayer-only push/spin, momentum-preserving drop, forward throw and solver-state limits; Solo tuning is unchanged. |
+| `scripts/multiplayer/network_toys.gd` | Stable toy service: host physics, exclusive/revisioned ownership, reach/occlusion checks, reliable actions, 30 Hz motion, late-join state, toy-only player collision capsules, bounded fast-grab history and release on departure/teleport. |
+| `scenes/multiplayer/toy_physics_tests.tscn` | Strong free spin/speed, catch tolerance/reach/wall rejection, actual guest F/click, reticle alignment, late arrival and real walking/seated player contact signals. Use the toy runner with `--physics`. |
+| `scenes/multiplayer/toy_integration_tests.tscn`, `tools/run_toy_tests.py` | Three real peers, including a mid-carry arrival, exercise F/click input, carrying, wall/floor/ceiling/toy contacts, glow, reset/disconnect, seated pickup, gameplay isolation and Enter-to-shortcut focus. |
+| `scripts/multiplayer/online_connection.gd` | Cancellable asynchronous DNS/TCP/UDP registration, Noray relay handshake, private credential isolation and service failure cleanup. The host remains authoritative over the relayed ENet game. |
+| `tools/run_online_tests.py`, `tools/noray_test_service.py` | Local Noray-compatible relay fixture, production launcher cancellation/error checks, and three/four actual Godot peers playing through relayed UDP sockets. |
+| `scripts/multiplayer/table_network.gd` | Table RPCs, sender identity, session epochs, duplicate/stale action rejection, host session start, acknowledgements, late-join state and room cleanup. |
+| `scripts/multiplayer/table_session.gd` | Finite-session ledger, locked settings, enrolled roster, once-only counting, bankruptcy/end state, departed results and tied rankings. |
+| `scripts/multiplayer/network_session_dialog.gd` | Five-column final results, tied winners, colored net profit and New Session returning to the unified console. |
+| `scenes/multiplayer/network_leaderboard.tscn`, `scripts/multiplayer/network_leaderboard.gd` | Physical left-wall screen showing starting/current/ending balances and settled ranks, stable while wagers are reserved. |
+| `scenes/multiplayer/table_session_tests.tscn`, `table_session_integration_tests.tscn` | Known-draw finite sessions and four real peers exercising setup, results, reconnect spectating, stale-session requests, ties and fresh bankrolls. |
+| `scripts/multiplayer/network_table_view.gd`, `network_table_hud.gd` | Physical cards/totals, immediate gold Lucky 9 qualification/bonus markers, local gold Reroll outlines and occlusion-aware card picking, synchronized raised-card fans, responsive utility/economy controls and labeled action shortcuts. |
+| `scenes/multiplayer/wide_blackjack_table.tscn` | Widened multiplayer furniture with collision vertices sized to the mesh, keeping the physics body at uniform scale. |
+| `scenes/multiplayer/table_presentation_tests.tscn`, `scripts/multiplayer/table_presentation_test.gd` | Four real peers exercise all four chairs, card lifting/hand selection, overlay controls, payouts, and presentation cleanup. |
+| `scenes/multiplayer/special_table_tests.tscn`, `special_table_integration_tests.tscn` | Known-card rule/payout cases and four real peers using the console, Reroll highlight/click/dropdown/cancel, labeled keys, seat/Stand separation, responsive HUD and recovery controls. |
+| `scenes/multiplayer/classic_table_tests.tscn`, `table_integration_tests.tscn`, `tools/run_table_tests.py` | Known-card payout flows and complete shared rounds through three independent ENet peers and production UI handlers. |
 
 ---
 

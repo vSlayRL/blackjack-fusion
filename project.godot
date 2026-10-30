@@ -11,13 +11,16 @@ config_version=5
 [application]
 
 config/name="Blackjack Fusion"
-run/main_scene="uid://nvmv06wtn53k"
+run/main_scene="res://scenes/multiplayer/launcher.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
 
 [autoload]
 
 DisplaySettings="*res://scripts/display_settings.gd"
+RoomNetwork="*res://scripts/multiplayer/room_network.gd"
+TableNetwork="*res://scripts/multiplayer/table_network.gd"
+ToyNetwork="*res://scripts/multiplayer/network_toys.gd"
 
 [display]
 
@@ -25,9 +28,12 @@ window/size/viewport_width=960
 window/size/viewport_height=640
 window/size/window_width_override=960
 window/size/window_height_override=640
-window/stretch/aspect="expand"
+window/subwindows/embed_subwindows=true
+window/size/resizable=true
 window/size/min_width=640
 window/size/min_height=560
+window/stretch/mode="disabled"
+window/stretch/aspect="expand"
 
 [physics]
 

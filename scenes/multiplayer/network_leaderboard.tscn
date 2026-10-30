@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/multiplayer/network_leaderboard.gd" id="1"]
+
+[node name="SessionLeaderboard" type="Node3D"]
+position = Vector3(-6.62, 3.0, -1.4)
+rotation = Vector3(0, 1.5707964, 0)
+script = ExtResource("1")

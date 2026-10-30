@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/room/room_explorer.tscn" id="1"]
+[ext_resource type="Script" path="res://scripts/multiplayer/network_avatar.gd" id="2"]
+
+[node name="NetworkAvatar" instance=ExtResource("1")]
+script = ExtResource("2")
+
+[node name="Camera3D" parent="." index="1"]
+current = false
